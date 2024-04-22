@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  meu_servico1:
+    image: nome_da_sua_imagem
+    networks:
+      minha_rede:
+        ipv4_address: 192.168.0.2
+
+  meu_servico2:
+    image: nome_da_sua_imagem
+    networks:
+      minha_rede:
+        ipv4_address: 192.168.0.3
+
+  meu_servico3:
+    image: nome_da_sua_imagem
+    networks:
+      minha_rede:
+        ipv4_address: 192.168.0.4
+
+  meu_servico4:
+    image: nome_da_sua_imagem
+    networks:
+      minha_rede:
+        ipv4_address: 192.168.0.5
+
+networks:
+  minha_rede:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/24
