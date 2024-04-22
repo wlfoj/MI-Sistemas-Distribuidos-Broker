@@ -25,14 +25,16 @@ def Receiver(dispositivo: Sensor, socket: socket.socket):
     while 1:
         # Fica aguardando um comando chegar via tcp
         dados_recebidos = socket.recv(1024).decode('utf-8')
-        ## Etapa para desserializar 
-        dados_recebidos = dados_recebidos.decode('utf-8')
-        dados_recebidos = json.loads(dados_recebidos)
-        try:
-            # Faz validação
-            comando = dados_recebidos['comando']
-            # Executa a instrução
-            executor(dispositivo, comando)
-        except:
-            continue
+        # Se recbi algum dado
+        if dados_recebidos:
+            ## Etapa para desserializar 
+            dados_recebidos = dados_recebidos.decode('utf-8')
+            dados_recebidos = json.loads(dados_recebidos)
+            try:
+                # Faz validação
+                comando = dados_recebidos['comando']
+                # Executa a instrução
+                executor(dispositivo, comando)
+            except:
+                continue
     socket.close()

@@ -16,3 +16,8 @@ vai ter um endpoint que pega os dados de todas as filas de comandos + dados
 Vai ter um endpoint que obtem a lista de todos os dispositivos do broker
 
 Vai ter um parser para controlar o formato que vai receber dos dados
+broker só permite a conexão tcp de dispositivos especificos
+Vai ter uma thread só para ficar ouvindo conexões e registrando as mesmas
+
+## Observação especial é que no caso do topico de comandos, só permito um unico inscrito
+## Observação especial é que no caso do topico de dados, só permito um unico publicador

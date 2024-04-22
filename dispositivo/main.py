@@ -16,7 +16,7 @@ socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 socket_tcp.connect((conf['broker_host_ip'], conf['broker_host_port_tcp']))
 
 ## INICIALIZADOR DO DISPOSITIVO ##
-dispositivo = Sensor("Meu dispositivo")
+dispositivo = Sensor("Meu dispositivo", 25)
 
 
 ###### =========== BLOCO DE CRIAÇÃO DA THREADS =========== ######

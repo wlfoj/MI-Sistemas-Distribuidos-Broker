@@ -1,5 +1,6 @@
 from enum import Enum
 import time
+import random
 
 class Status (Enum):
     Off = 0
@@ -12,13 +13,18 @@ class Sensor:
     dado = 0 # Dado que o sensor está lendo
     status = Status.Off # Se estiver ligado será True
 
-    def __init__(self, nome):
+    def __init__(self, nome, dado_inicial):
         self.nome = nome
+        self.dado = dado_inicial
 
     def ler_dados(self):
-        '''Função que retorna o dado da leitura atual do dispositivo.
+        '''Função que retorna o dado da leitura atual do dispositivo. A cada leitura o dado é atualizado aleatóriamente em torno do ponto anterior.
         Return.
             self.dado (int) -> valor da leitura'''
+        # Atualizando o valor
+        f = random.randint(-100, 100)/100
+        self.dado = self.dado + f
+        # 
         return self.dado
     
     def ligar(self):
