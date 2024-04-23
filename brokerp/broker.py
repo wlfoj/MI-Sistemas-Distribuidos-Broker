@@ -43,7 +43,7 @@ class Broker():
                        'dados_3': {'publisher':self._dispositivos[2]['device_name'], 'subscribe':'', 'values': None},
                        'dados_4': {'publisher':self._dispositivos[3]['device_name'], 'subscribe':'', 'values': None},
                        'dados_5': {'publisher':self._dispositivos[4]['device_name'], 'subscribe':'', 'values': None},
-                       'dados_6': {'publisher':self._dispositivos[5]['device_name'], 'subscribe':'', 'values': None},
+                       'dados_6': {'publisher':self._dispositivos[5]['device_name'], 'subscribe':'', 'values': 32},
                        'dados_7': {'publisher':self._dispositivos[6]['device_name'], 'subscribe':'', 'values': None},
                        'dados_8': {'publisher':self._dispositivos[7]['device_name'], 'subscribe':'', 'values': None},
                        'dados_9': {'publisher':self._dispositivos[8]['device_name'], 'subscribe':'', 'values': None}
@@ -94,6 +94,13 @@ class Broker():
                 conn = dispositivo['conexao_tcp']
                 break
         return conn
+
+    def pega_mensagens_todos_topicos_dados(self):
+        res = []
+        for chave, item in self.topico.items():
+            if chave.startswith('dados_'):
+                res.append({'topic':chave, 'value': self.pop_message(chave)})
+        return res
 
     def pop_message(self, TOPIC: str) -> dict:
         ''' Obtem determinada mensagem no tópico correspondente. Retorna True se conseguir fazer e false se n conseguir.
