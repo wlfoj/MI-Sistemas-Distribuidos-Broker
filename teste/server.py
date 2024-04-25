@@ -18,15 +18,17 @@ try:
         while True:
             # Recebendo as mensagens através da conexão
             print("Entrei na parte que faz o recebimento")
-            mensagem = conexao.recv(1024)
+            #mensagem = conexao.recv(1024)
+            conexao.send(str("oi").encode())
             print("Já passei da parte que faz o recebimento")
-            if not mensagem:
-                break
+            #if not mensagem:
+            #    break
             # Exibindo a mensagem recebida
-            print('\nCliente..:', cliente)
-            print('Mensagem.:', mensagem.decode())
+            #print('\nCliente..:', cliente)
+            #print('Mensagem.:', mensagem.decode())
 
-except:
+except Exception as e:
+    print(e)
     print('Finalizando conexão do cliente', cliente)
     # Fechando a conexão com o Socket
     conexao.close()

@@ -61,13 +61,6 @@ def enviar_comando():#ok
     return 0
 
 
-# Função para atualizar a tabela com os dados recebidos
-def atualizar_tabela(dados_recebidos):
-    print("Executei o loop")
-    for row in tabela.get_children():
-        tabela.delete(row)
-    for dado in dados_recebidos:
-        tabela.insert("", "end", values=dado)
 
 # Simulação de dados recebidos via TCP
 dados_recebidos = [
@@ -118,6 +111,27 @@ tabela = ttk.Treeview(frame_dados_recebidos, columns=colunas, show="headings")
 for col in colunas:
     tabela.heading(col, text=col)
 tabela.pack(fill="both", expand=True)
+
+# Função para atualizar a tabela com os dados recebidos
+def atualizar_tabela(dados_recebidos):
+    print("Executei o loop")
+    response = None
+    # URL do endpoint que você deseja acessar
+    url = url_api+"/sub"
+    # Realiza a requisição GET
+    erro = False
+    try:
+        response = requests.get(url).json()
+    except:
+        erro = True
+    for row in tabela.get_children():
+        tabela.delete(row)
+    for dado in response:
+        aux = (dado['dispositivo'], dado['value'])
+        tabela.insert("", "end", values=aux)
+
+
+
 
 def atualizar_periodicamente():
     # Simulando a atualização periódica dos dados recebidos (você pode substituir isso por uma conexão TCP real)

@@ -1,7 +1,7 @@
 # Código para envio udp 
 import socket
 import json
-
+import time
 from Device import Sensor, Status
 from config import conf
 
@@ -22,5 +22,6 @@ def Sender(dispositivo: Sensor, socket: socket.socket):
             envio_json = json.dumps(envio).encode('utf-8')
             # Envia os dados para o broker
             socket.sendto(envio_json, (conf['broker_host_ip'], conf['broker_host_port_udp']))
+            time.sleep(1.5)
     socket.close()
 

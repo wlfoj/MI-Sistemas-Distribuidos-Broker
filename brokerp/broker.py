@@ -15,38 +15,38 @@ class Broker():
     def __init__(self, mode: Modes):
         self._mode = mode
         self._dispositivos = [
-                {"device_name":"Dispositivo_1", "ip": '', "conexao_tcp": None}, 
-                {"device_name":"Dispositivo_2", "ip": '', "conexao_tcp": None},
-                {"device_name":"Dispositivo_3", "ip": '', "conexao_tcp": None},
-                {"device_name":"Dispositivo_4", "ip": '', "conexao_tcp": None},
-                {"device_name":"Dispositivo_5", "ip": '', "conexao_tcp": None},
-                {"device_name":"Dispositivo_6", "ip": '', "conexao_tcp": None},
-                {"device_name":"Dispositivo_7", "ip": '', "conexao_tcp": None},
-                {"device_name":"Dispositivo_8", "ip": '', "conexao_tcp": None},
-                {"device_name":"Dispositivo_9", "ip": '', "conexao_tcp": None}
+                {"device_name":"Dispositivo_1", "ip": '10.0.0.103', "conexao_tcp": None}, 
+                {"device_name":"Dispositivo_2", "ip": '10.0.0.104', "conexao_tcp": None},
+                {"device_name":"Dispositivo_3", "ip": '10.0.0.105', "conexao_tcp": None},
+                {"device_name":"Dispositivo_4", "ip": '10.0.0.106', "conexao_tcp": None},
+                {"device_name":"Dispositivo_5", "ip": '10.0.0.107', "conexao_tcp": None},
+                {"device_name":"Dispositivo_6", "ip": '10.0.0.108', "conexao_tcp": None},
+                {"device_name":"Dispositivo_7", "ip": '10.0.0.109', "conexao_tcp": None},
+                {"device_name":"Dispositivo_8", "ip": '10.0.0.110', "conexao_tcp": None},
+                {"device_name":"Dispositivo_9", "ip": '10.0.0.111', "conexao_tcp": None}
                 ]
         #########
         self.topico = {
                        # Tópicos de comandos, dispositivos registrados como inscritos
-                       'comandos_1': {'subscribe':self._dispositivos[0]['device_name'], 'publisher':'', 'values': None},
-                       'comandos_2': {'subscribe':self._dispositivos[1]['device_name'], 'publisher':'', 'values': None},
-                       'comandos_3': {'subscribe':self._dispositivos[2]['device_name'], 'publisher':'', 'values': None},
-                       'comandos_4': {'subscribe':self._dispositivos[3]['device_name'], 'publisher':'', 'values': None},
-                       'comandos_5': {'subscribe':self._dispositivos[4]['device_name'], 'publisher':'', 'values': None},
-                       'comandos_6': {'subscribe':self._dispositivos[5]['device_name'], 'publisher':'', 'values': None},
-                       'comandos_7': {'subscribe':self._dispositivos[6]['device_name'], 'publisher':'', 'values': None},
-                       'comandos_8': {'subscribe':self._dispositivos[7]['device_name'], 'publisher':'', 'values': None},
-                       'comandos_9': {'subscribe':self._dispositivos[8]['device_name'], 'publisher':'', 'values': None},
+                       'comandos_1': {'subscribe':self._dispositivos[0]['ip'], 'publisher':'', 'values': None},
+                       'comandos_2': {'subscribe':self._dispositivos[1]['ip'], 'publisher':'', 'values': None},
+                       'comandos_3': {'subscribe':self._dispositivos[2]['ip'], 'publisher':'', 'values': None},
+                       'comandos_4': {'subscribe':self._dispositivos[3]['ip'], 'publisher':'', 'values': None},
+                       'comandos_5': {'subscribe':self._dispositivos[4]['ip'], 'publisher':'', 'values': None},
+                       'comandos_6': {'subscribe':self._dispositivos[5]['ip'], 'publisher':'', 'values': None},
+                       'comandos_7': {'subscribe':self._dispositivos[6]['ip'], 'publisher':'', 'values': None},
+                       'comandos_8': {'subscribe':self._dispositivos[7]['ip'], 'publisher':'', 'values': None},
+                       'comandos_9': {'subscribe':self._dispositivos[8]['ip'], 'publisher':'', 'values': None},
                        # Tópicos de dados, dispositivos registrados como publicadores
-                       'dados_1': {'publisher':self._dispositivos[0]['device_name'], 'subscribe':'', 'values': 44},
-                       'dados_2': {'publisher':self._dispositivos[1]['device_name'], 'subscribe':'', 'values': None},
-                       'dados_3': {'publisher':self._dispositivos[2]['device_name'], 'subscribe':'', 'values': None},
-                       'dados_4': {'publisher':self._dispositivos[3]['device_name'], 'subscribe':'', 'values': None},
-                       'dados_5': {'publisher':self._dispositivos[4]['device_name'], 'subscribe':'', 'values': None},
-                       'dados_6': {'publisher':self._dispositivos[5]['device_name'], 'subscribe':'', 'values': 32},
-                       'dados_7': {'publisher':self._dispositivos[6]['device_name'], 'subscribe':'', 'values': None},
-                       'dados_8': {'publisher':self._dispositivos[7]['device_name'], 'subscribe':'', 'values': None},
-                       'dados_9': {'publisher':self._dispositivos[8]['device_name'], 'subscribe':'', 'values': None}
+                       'dados_1': {'publisher':self._dispositivos[0]['ip'], 'subscribe':'', 'values': 44},
+                       'dados_2': {'publisher':self._dispositivos[1]['ip'], 'subscribe':'', 'values': None},
+                       'dados_3': {'publisher':self._dispositivos[2]['ip'], 'subscribe':'', 'values': None},
+                       'dados_4': {'publisher':self._dispositivos[3]['ip'], 'subscribe':'', 'values': None},
+                       'dados_5': {'publisher':self._dispositivos[4]['ip'], 'subscribe':'', 'values': None},
+                       'dados_6': {'publisher':self._dispositivos[5]['ip'], 'subscribe':'', 'values': 32},
+                       'dados_7': {'publisher':self._dispositivos[6]['ip'], 'subscribe':'', 'values': None},
+                       'dados_8': {'publisher':self._dispositivos[7]['ip'], 'subscribe':'', 'values': None},
+                       'dados_9': {'publisher':self._dispositivos[8]['ip'], 'subscribe':'', 'values': None}
                        }
         
 
@@ -99,8 +99,17 @@ class Broker():
         res = []
         for chave, item in self.topico.items():
             if chave.startswith('dados_'):
-                res.append({'topic':chave, 'value': self.pop_message(chave)})
+                res.append({'dispositivo': self.translate_ip_inn_name(item['publisher']), 'value': self.pop_message(chave)})
         return res
+
+    def translate_ip_inn_name(self, ip):
+        name = None
+        for device in  self._dispositivos:
+            if device['ip'] == ip:
+                name = device['device_name']
+                break
+        return name
+
 
     def pop_message(self, TOPIC: str) -> dict:
         ''' Obtem determinada mensagem no tópico correspondente. Retorna True se conseguir fazer e false se n conseguir.
@@ -140,7 +149,7 @@ class Broker():
         '''Função que registra determinado device em uma estrutura com os dados'''
         # Procuro por um slot com o ip especificado na lista de permitidos
         ## Aqui é como se fosse validar, se eu não especificasse os ips, os dispositivos deveriam ter uma key
-        dispositivo_slot = self.obter_dispositivo_por_ip(ip)
+        dispositivo_slot = self._obter_dispositivo_por_ip(ip)
         # Se eu tiver encontrado algum
         if dispositivo_slot:
             # Faço o registro da conexão
@@ -152,7 +161,7 @@ class Broker():
             return False
 
     def _obter_dispositivo_por_ip(self, ip: str):
-        for dispositivo in self.dispositivos:
+        for dispositivo in self._dispositivos:
             if dispositivo["ip"] == ip:
                 return dispositivo
         return None
@@ -166,7 +175,7 @@ class Broker():
         # Se a chave recebida for a mesma permitida
         if chave_descriptografada == conf['key_allowed']:
             # Procuro por um slot livre para registro
-            dispositivo_slot = self.obter_slot_livre()
+            dispositivo_slot = self._obter_slot_livre()
             # Se tiver achado o slot
             if dispositivo_slot:
                 # Faço o registro da conexão
@@ -184,3 +193,10 @@ class Broker():
                 return dispositivo
         return None     
     
+    def get_topic_to_ip(self, ip: str):
+        # Aqui eu pego o nome do device
+        device = self._obter_dispositivo_por_ip(ip)
+        num = device['device_name'].split('_')[1] # Estou pegando o num dele
+        topic = 'dados_'+str(num)
+        return topic
+        # Aqui eu descubro o tópico dele

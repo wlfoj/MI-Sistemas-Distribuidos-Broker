@@ -1,12 +1,18 @@
 from flask import Flask, request, jsonify
+import socket
+import threading
 
+from SERVER_TCP import thread_listen_conections
+from SERVER_UDP import thread_receiva_udp
+
+from config import conf
 from broker import Broker
 
 app = Flask(__name__)
 broker = Broker(1)
 
 
-
+#### COLOCAR A REQUISIÇÃO NA FILA DA THREAD PROCESSADORA, Aí ELA DA POP LÀ E VAI EXECUTANDO. DEIXA OS CANAIS DE RECEBIMENTO LIVRES
 @app.route('/pub/<string:topic>', methods=['POST'])
 def post_mensagem(topic: str):
     '''Publica a mensagem no topico'''
@@ -25,6 +31,9 @@ def post_mensagem(topic: str):
     if confirm:
         status = 201
     return jsonify({"mensagem": "Mensagem publicada com sucesso"}), status
+
+
+
 
 @app.route('/sub', methods=['GET'])
 def get_mensagens():
@@ -47,8 +56,6 @@ def get_mensagem(topic:str):
     return jsonify({'value': msg}), 200
 
 
-
-
 @app.route('/device_names', methods=['GET'])
 def get_devices():
     '''Obtem os nomes dos dispositivos cadastrados'''
@@ -57,6 +64,36 @@ def get_devices():
 
 
 
+
+
+
+
 if __name__ == '__main__':
-    
+
+    # Pro caso de dar erro???
+    # Dou start nas threads udp e tcp
+    # Dou start na thread de processamento
+    # Dou start na thread do broker????
+    # Dou start no api restful
     app.run(debug=True)
+
+    udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    origem = (conf['tcp_addres_con'], conf['udp_port'])
+    udp.bind(origem)
+    
+    tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    origem = (conf['tcp_addres_con'], conf['tcp_port'])
+    tcp.bind(origem)
+    tcp.listen(9) ## DEIXEI UM NÚMERO FIXO DE DISPOSITIVOS PARA SE CONECTAREM AQUI
+
+    
+    #
+    thread_udp = threading.Thread(target=thread_receiva_udp, args=[udp, broker])
+    thread_tcp = threading.Thread(target=thread_listen_conections, args=[tcp, broker])
+    ## Dá start nas threads
+    thread_tcp.start()
+    thread_udp.start()
+    #
+    thread_tcp.join()
+    thread_udp.join()
+    

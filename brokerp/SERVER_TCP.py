@@ -4,14 +4,16 @@ from broker import Broker
 
 def thread_listen_conections(socket_tcp: socket.socket, broker: Broker):
     '''Esta função atua apenas ouvindo conexões e registrando no broker'''
-
+    print("inicei a thread")
     while True:
+        print("entrei no loop")
         # Aceitando uma nova conexão
         conexao, cliente = socket_tcp.accept()
-
+        print("Recebi conexão de ", cliente)
         if conexao and cliente:
             # Registra o cliente no broker
             broker.register_device(conexao, cliente[0])
+            print(broker._dispositivos)
 
 
 def thread_send_message(broker: Broker):

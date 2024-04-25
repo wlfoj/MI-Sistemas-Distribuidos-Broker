@@ -12,7 +12,7 @@ print('Para sair use CTRL+X\n')
 mensagem = input()
 # Enviando a mensagem para o Servidor TCP através da conexão
 while mensagem != '\x18':
-   tcp.send(str(mensagem).encode())
+   #tcp.send(str(mensagem).encode())
 
    mensagem = input()
 
