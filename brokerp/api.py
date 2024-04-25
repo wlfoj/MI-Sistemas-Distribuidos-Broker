@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify
+from flask_caching import Cache
+
 import socket
 import threading
 
@@ -9,6 +11,7 @@ from config import conf
 from broker import Broker
 
 app = Flask(__name__)
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})  # Configuração básica de cache
 broker = Broker(1)
 
 
@@ -36,6 +39,7 @@ def post_mensagem(topic: str):
 
 
 @app.route('/sub', methods=['GET'])
+@cache.cached(timeout=2)  # Cache válido por 60 segundos
 def get_mensagens():
     '''Pega mensagens de todos os tópicos'''
     # Aqui você pode implementar a lógica para ler as mensagens do tópico MQTT
@@ -57,6 +61,7 @@ def get_mensagem(topic:str):
 
 
 @app.route('/device_names', methods=['GET'])
+@cache.cached(timeout=2)  # Cache válido por 60 segundos
 def get_devices():
     '''Obtem os nomes dos dispositivos cadastrados'''
     return jsonify(broker.get_registered_devices()), 200
@@ -80,7 +85,7 @@ if __name__ == '__main__':
     udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     origem = (conf['tcp_addres_con'], conf['udp_port'])
     udp.bind(origem)
-    
+
     tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     origem = (conf['tcp_addres_con'], conf['tcp_port'])
     tcp.bind(origem)

@@ -24,10 +24,10 @@ def get_devices():#ok
     except:
         erro = True
 
-    if (not erro):
-        messagebox.showinfo("Sucesso", "A solicitação foi enviada com sucesso!")
-    else:
-        messagebox.showinfo("Erro", "A solicitação não pode ser enviada")
+    # if (not erro):
+    #     messagebox.showinfo("Sucesso", "A solicitação foi enviada com sucesso!")
+    # else:
+    #     messagebox.showinfo("Erro", "A solicitação não pode ser enviada")
     return response
 
 
@@ -134,8 +134,11 @@ def atualizar_tabela(dados_recebidos):
 
 
 def atualizar_periodicamente():
-    # Simulando a atualização periódica dos dados recebidos (você pode substituir isso por uma conexão TCP real)
+    # Atualiza a tabela de (NOME_DISP, VALOR LIDO)
     atualizar_tabela(dados_recebidos + [("Novo Dado", "Novo Valor")])
+    # Atualiza a lista de dispositivos
+    get_devices()
+    # faz a atualização a cada 5s
     root.after(5000, atualizar_periodicamente)
 
 # Chamando a função para atualizar periodicamente
