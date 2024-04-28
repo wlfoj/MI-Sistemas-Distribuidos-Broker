@@ -1,43 +1,20 @@
-import threading
+dicionario = {'comando1': 1212, 'comando2': 1212, 'comando3': 1212}
 
-# class EXECUTE():
-#     def vai(self):
-#         print('vai')
+# Percorre o dicionário e imprime cada chave e valor
+for chave, valor in dicionario.items():
+    print(f'Chave: {chave}, Valor: {valor}')
 
-#     def vem(self):
-#         print('vem')
+del dicionario['comando2']
+print(dicionario)
 
+###
+obj1 = {'name': 'abc', 'ip': '44', 'conn': 22}
+obj2 = {'name': 'abc', 'ip': '44', 'conn': None}
+lista = []
+lista.append(obj1)
+lista.append(obj2)
+print(lista)
 
+lista.remove({'name': 'abc', 'ip': '44', 'conn': 22})
 
-# exec = EXECUTE()
-
-# def th1(exec: EXECUTE, op: bool):
-#     while 1:
-#         if op:
-#             exec.vai()
-
-
-# def th2(exec: EXECUTE, op: bool):
-#     while 1:
-#         if not op:
-#             exec.vem()
-
-
-
-# thread_1 = threading.Thread(target=th1, args=[exec, True])
-# thread_2 = threading.Thread(target=th2, args=[exec, False])
-
-
-# thread_1.start()
-# thread_2.start()
-
-# thread_1.join()
-# thread_2.join(),
-
-
-
-from cryptography.fernet import Fernet
-import base64
-
-chave = b"ola Mundo!ashdiahsodahdosahodpso"
-cipher = Fernet(base64.urlsafe_b64encode(chave)) # Para Criptografia Simétrica (AES)
+print(lista)

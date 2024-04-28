@@ -3,62 +3,47 @@ import time
 import random
 
 class Status (Enum):
-    Off = 0
-    On = 1
-    Pause = 2
+    Off = "Desligado"
+    On = "Ligado"
+    Pause = "Pausado"
 
 
 ##  classe dispositivo aqui,
 class Sensor:
-    dado = 0 # Dado que o sensor está lendo
-    status = Status.Off # Se estiver ligado será True
+    _data = 0 # Dado que o sensor está lendo
+    _status = Status.Off # Se estiver ligado será True
 
     def __init__(self, nome, dado_inicial):
-        self.nome = nome
-        self.dado = dado_inicial
+        self._nome = nome
+        self._data = dado_inicial
 
-    def ler_dados(self):
+    def get_data(self):
         '''Função que retorna o dado da leitura atual do dispositivo. A cada leitura o dado é atualizado aleatóriamente em torno do ponto anterior.
         Return.
             self.dado (int) -> valor da leitura'''
         # Atualizando o valor
         f = random.randint(-100, 100)/100
-        self.dado = self.dado + f
+        self._data = self._data + f
         # 
-        return self.dado
+        return self._data
     
-    def ligar(self):
-        self.status = Status.On
-    
-    def desligar(self):
-        self.status = Status.Off
+    def set_status(self, new_status: Status):
+        # Se tentei pausar, mas a aplicação não estava ligada
+        if self._status != Status.On and new_status == Status.Pause:
+            pass
+        else:
+            self._status = new_status
 
-    def pausar(self):
-        '''Função que pausa o dispositivo, caso o mesmo esteja ligado'''
-        # Só pausa se estiver ligado
-        if self.status == Status.On:
-            self.status = Status.Pause
-    ########?????  E O DESPAUSAR ???????? #######
-    def resume(self):
-        '''Função que retira o dispositivo do pause, caso ele esteja ligado'''
-        if self.status== Status.Pause:
-            self.status = Status.On
 
-    def obter_status(self):
+    def get_status(self):
         '''Função que informa se o sensor está ligado, desligado ou pausado.
         Return.
-            self.status (Status) - > A situação atual do sensor
+            self._status (Status) - > A situação atual do sensor
                 Pode ser um dos [ON, OFF, PAUSE]'''
-        return self.status
+        return self._status
     
-    def alterar_dado(self, valor):
-        ''' Função para alterar o dado manualmente.
-        '''
-        # Acho que vou precisar fazer um lock aqui
-        while abs(round(self.dado,1) - round(valor,)) > 0.1:  # Defina uma margem de tolerância adequada para o seu caso
-            if self.dado < valor:
-                self.dado += 0.1  # Ou qualquer incremento que desejar
-            else:
-                self.dado -= 0.1  # Ou qualquer decremento que desejar
-            print("A temp está em", self.dado)
-            time.sleep(1)
+    def change_data(self, valor):
+        ''' Função para alterar o dado manualmente.        '''
+        # Só altera se a aplicação estiver ligada
+        if self._status == Status.On:
+            self._data = valor

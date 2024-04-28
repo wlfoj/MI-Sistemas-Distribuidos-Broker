@@ -1,6 +1,14 @@
 # São endereços IPv4
+import os
+import base64
+
+
+# Obtém o valor da variável de ambiente 'NOME' ou retorna 'DISP' se não estiver definida
 conf = {
-    "broker_host_ip": '10.0.0.103',
+    'key_conn': 'em terra de rei tem ouro', # Para que o broker me aceite
+    "broker_host_ip": '10.0.0.6',
     "broker_host_port_udp": 12346,
-    "broker_host_port_tcp": 12345
+    "broker_host_port_tcp": 12345,
+    "NAME_DEVICE": os.environ.get('NAME_DEVICE', ' '),
+    "key_crypt": base64.urlsafe_b64encode(b'Jupiter ser feliz com Netuno   ,') # Para usar no construtor do FERNET
 }

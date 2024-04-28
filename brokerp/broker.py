@@ -1,127 +1,279 @@
 import socket
 from typing import Tuple
-from config import conf
 
-from enum import Enum
-
-class Modes(Enum):
-    DIRECT = 1
-    FAN_OUT = 2
-    FAN_IN = 3
-    NO_QUEUE = 4
 
 class Broker():
 
-    def __init__(self, mode: Modes):
-        self._mode = mode
-        self._dispositivos = [
-                {"device_name":"Dispositivo_1", "ip": '10.0.0.103', "conexao_tcp": None}, 
-                {"device_name":"Dispositivo_2", "ip": '10.0.0.104', "conexao_tcp": None},
-                {"device_name":"Dispositivo_3", "ip": '10.0.0.105', "conexao_tcp": None},
-                {"device_name":"Dispositivo_4", "ip": '10.0.0.106', "conexao_tcp": None},
-                {"device_name":"Dispositivo_5", "ip": '10.0.0.107', "conexao_tcp": None},
-                {"device_name":"Dispositivo_6", "ip": '10.0.0.108', "conexao_tcp": None},
-                {"device_name":"Dispositivo_7", "ip": '10.0.0.109', "conexao_tcp": None},
-                {"device_name":"Dispositivo_8", "ip": '10.0.0.110', "conexao_tcp": None},
-                {"device_name":"Dispositivo_9", "ip": '10.0.0.111', "conexao_tcp": None}
-                ]
+    def __init__(self):
+        self._LIMIT_DISP_CONNCTED = 10
+        self._disp_num = 0 # Representa o número de disposiitivo conectado
+        self._devices = [] # A lista de dispositivos {"device_name":"", "ip": '', "tcp_connection": None}
         #########
-        self.topico = {
-                       # Tópicos de comandos, dispositivos registrados como inscritos
-                       'comandos_1': {'subscribe':self._dispositivos[0]['ip'], 'publisher':'', 'values': None},
-                       'comandos_2': {'subscribe':self._dispositivos[1]['ip'], 'publisher':'', 'values': None},
-                       'comandos_3': {'subscribe':self._dispositivos[2]['ip'], 'publisher':'', 'values': None},
-                       'comandos_4': {'subscribe':self._dispositivos[3]['ip'], 'publisher':'', 'values': None},
-                       'comandos_5': {'subscribe':self._dispositivos[4]['ip'], 'publisher':'', 'values': None},
-                       'comandos_6': {'subscribe':self._dispositivos[5]['ip'], 'publisher':'', 'values': None},
-                       'comandos_7': {'subscribe':self._dispositivos[6]['ip'], 'publisher':'', 'values': None},
-                       'comandos_8': {'subscribe':self._dispositivos[7]['ip'], 'publisher':'', 'values': None},
-                       'comandos_9': {'subscribe':self._dispositivos[8]['ip'], 'publisher':'', 'values': None},
-                       # Tópicos de dados, dispositivos registrados como publicadores
-                       'dados_1': {'publisher':self._dispositivos[0]['ip'], 'subscribe':'', 'values': 44},
-                       'dados_2': {'publisher':self._dispositivos[1]['ip'], 'subscribe':'', 'values': None},
-                       'dados_3': {'publisher':self._dispositivos[2]['ip'], 'subscribe':'', 'values': None},
-                       'dados_4': {'publisher':self._dispositivos[3]['ip'], 'subscribe':'', 'values': None},
-                       'dados_5': {'publisher':self._dispositivos[4]['ip'], 'subscribe':'', 'values': None},
-                       'dados_6': {'publisher':self._dispositivos[5]['ip'], 'subscribe':'', 'values': 32},
-                       'dados_7': {'publisher':self._dispositivos[6]['ip'], 'subscribe':'', 'values': None},
-                       'dados_8': {'publisher':self._dispositivos[7]['ip'], 'subscribe':'', 'values': None},
-                       'dados_9': {'publisher':self._dispositivos[8]['ip'], 'subscribe':'', 'values': None}
+        self._topics = {
+                    #    # Tópicos de comandos, dispositivos registrados como inscritos
+                    #    'comandos_1': {'subscribe':self._devices[0]['ip'], 'publisher':'', 'values': None},
+                    #    'comandos_2': {'subscribe':self._devices[1]['ip'], 'publisher':'', 'values': None},
+                    #    'comandos_3': {'subscribe':self._devices[2]['ip'], 'publisher':'', 'values': None},
+                    #    'comandos_4': {'subscribe':self._devices[3]['ip'], 'publisher':'', 'values': None},
+                    #    'comandos_5': {'subscribe':self._devices[4]['ip'], 'publisher':'', 'values': None},
+                    #    'comandos_6': {'subscribe':self._devices[5]['ip'], 'publisher':'', 'values': None},
+                    #    'comandos_7': {'subscribe':self._devices[6]['ip'], 'publisher':'', 'values': None},
+                    #    'comandos_8': {'subscribe':self._devices[7]['ip'], 'publisher':'', 'values': None},
+                    #    'comandos_9': {'subscribe':self._devices[8]['ip'], 'publisher':'', 'values': None},
+                    #    # Tópicos de dados, dispositivos registrados como publicadores
+                    #    'dados_1': {'publisher':self._devices[0]['ip'], 'subscribe':'', 'values': 44},
+                    #    'dados_2': {'publisher':self._devices[1]['ip'], 'subscribe':'', 'values': None},
+                    #    'dados_3': {'publisher':self._devices[2]['ip'], 'subscribe':'', 'values': None},
+                    #    'dados_4': {'publisher':self._devices[3]['ip'], 'subscribe':'', 'values': None},
+                    #    'dados_5': {'publisher':self._devices[4]['ip'], 'subscribe':'', 'values': None},
+                    #    'dados_6': {'publisher':self._devices[5]['ip'], 'subscribe':'', 'values': 32},
+                    #    'dados_7': {'publisher':self._devices[6]['ip'], 'subscribe':'', 'values': None},
+                    #    'dados_8': {'publisher':self._devices[7]['ip'], 'subscribe':'', 'values': None},
+                    #    'dados_9': {'publisher':self._devices[8]['ip'], 'subscribe':'', 'values': None}
                        }
         
 
 
-    def publish_message(self, TOPIC: str, message: dict, ip: str) -> bool:
-        ''' publica determinada mensagem no tópico correspondente. Retorna True se conseguir fazer e  false se n conseguir.
-        Olha se o ip_device tem autorização pra publicar no topico.
+    def get_msg_and_device_to_send_command(self) -> list:
+        '''Método que percorre os tópicos de comandos, procurando os que tem mensagem para enviar e monta uma lista com as mensagens,
+        o ip e a conexão do destinatário.
+        Se não tiver nenhum comando para enviar, recebe lista vazia.
+        Return.
+            [{"conn": None, "ip": None, "msg": None}, ...]
+        '''
+        resp = []
+        st = {"conn": None, "ip": None, "msg": None}
+        # Percorro todo os tópicos
+        for chave, item in self._topics.items():
+            # Se achei algum tópico com mensagem para enviar, adiciono na lista de operação
+            if item['values'] is not None and chave.startswith('command'):
+                st['msg'] = self.pop_message(chave) # Pego a mensagem
+                st["ip"] = item['subscribe'] # Pego o ip de quem vai receber
+                st['conn'] = self.get_conn_by_ip(st["ip"]) # Pego a conexão do ip de quem vai receber
+                resp.append(st)
+        # retorno a mensagem e a conexão do ouvinte
+        return resp
+
+
+    def _get_conn_for_topic(self, TOPIC: str):
+        '''Se não tiver nenhum dispositivo, conn deverá ser None'''
+        conn = None
+        _topics = self._topics[TOPIC]
+        # Pego o nome do device pelo tópico
+        device = _topics['subscribe']
+        # Procura na lista de dispositivos qual a conexão correspondentes
+        for dispositivo in self._devices:
+            if dispositivo['device_name'] == device:
+                conn = dispositivo['conexao_tcp']
+                break
+        return conn
+
+    def pega_mensagens_todos__topicss_dados(self):
+        res = []
+        for chave, item in self._topics.items():
+            if chave.startswith('dados_'):
+                res.append({'dispositivo': self.translate_ip_inn_name(item['publisher']), 'value': self.pop_message(chave)})
+        return res
+
+
+
+#### ============ BLOCO DE MÉTODOS AUXILIARES ============ ####  
+    def get_topic_name_publisher_by_device_name(self, device_name):
+        '''Método para obter os nomes dos tópicos em que um ip está cadastrado como publicador.
+        Param.
+            device_name (str)       -> Nome do dispositivo que se busca o nome do tópico
+        Return.
+            topic_name (str)        -> O nome do tópico em que o device_name é publiciador
+        '''
+        topic_name = None
+        # Percorre a lista de tópicos
+        for topicName, value in self._topics.items():
+            # para cada value = {'publisher': device['ip'], 'subscribe': '', 'values': None}
+            if value['publisher'] == ip:
+                topic_name = topicName
+                break # o break é pq estou suponto ter apenas um
+        return topic_name
+    
+
+    def get_topic_name_subscriber_by_device_name(self, device_name):
+        '''Método para obter os nomes dos tópicos em que um ip está cadastrado como ouvinte.
+        Param.
+            device_name (str)       -> Nome do dispositivo que se busca o nome do tópico
+        Return.
+            topic_name (str)        -> O nome do tópico em que o device_name é ouvinte
+        '''
+        topic_name = None
+        # Percorre a lista de tópicos
+        for topicName, value in self._topics.items():
+            # para cada value = {'publisher': device['ip'], 'subscribe': '', 'values': None}
+            if value['subscribe'] == ip:
+                topic_name = topicName
+                break # o break é pq estou suponto ter apenas um
+        return topic_name
+
+
+
+
+
+    def get_topic_name_publisher_by_ip(self, ip):
+        '''Método para obter os nomes dos tópicos em que um ip está cadastrado como publicador.
+        Param.
+            ip (str)         -> IPv4 do dispositivo que se busca o nome do tópico
+        Return.
+            topic_name (str) -> O nome do tópico em que o IP é publicador
+        '''
+        topic_name = None
+        # Percorre a lista de tópicos
+        for topicName, value in self._topics.items():
+            # para cada value = {'publisher': device['ip'], 'subscribe': '', 'values': None}
+            if value['publisher'] == ip:
+                topic_name = topicName
+                break # o break é pq estou suponto ter apenas um
+        return topic_name
+    
+
+    def get_topic_name_subscriber_by_ip(self, ip):
+        '''Método para obter os nomes dos tópicos em que um ip está cadastrado como ouvinte.
+        Param.
+            ip (str)         -> IPv4 do dispositivo que se busca o nome do tópico
+        Return.
+            topic_name (str) -> O nome do tópico em que o IP é ouvinte
+        '''
+        topic_name = None
+        # Percorre a lista de tópicos
+        for topicName, value in self._topics.items():
+            # para cada value = {'publisher': device['ip'], 'subscribe': '', 'values': None}
+            if value['subscribe'] == ip:
+                topic_name = topicName
+                break # o break é pq estou suponto ter apenas um
+        return topic_name
+
+
+    def get_conn_by_device_name(self, device_name):
+        '''Método para obter a conexão do dispositivo tendo passado o ip do mesmo. Caso não encontre, retorna None
+        Param.
+            device_name (str)         -> Nome do dispositivo que se busca a conn
+        Return.
+            conn (socket.socket)      -> A conexão TCP dispositivo correspondente ao IPv4'''
+        conn = None
+        for device in  self._devices:
+            if device['device_name'] == device_name:
+                conn = device['tcp_connection']
+                break
+        return conn
+    
+
+    def get_conn_by_ip(self, ip):
+        '''Método para obter a conexão do dispositivo tendo passado o ip do mesmo. Caso não encontre, retorna None
+        Param.
+            ip (str)                  -> IPv4 do dispositivo que se busca a conn
+        Return.
+            conn (socket.socket)      -> A conexão TCP dispositivo correspondente ao IPv4'''
+        conn = None
+        for device in  self._devices:
+            if device['ip'] == ip:
+                conn = device['tcp_connection']
+                break
+        return conn
+
+
+    def get_device_name_by_ip(self, ip):
+        '''Método para obter o device_name do dispositivo tendo passado o ip do mesmo. Caso não encontre, retorna None
+        Param.
+            ip (str)        -> IPv4 do dispositivo que se busca o nome
+        Return.
+            name (str)      -> O nome do dispositivo correspondente ao IPv4'''
+        name = None
+        for device in  self._devices:
+            if device['ip'] == ip:
+                name = device['device_name']
+                break
+        return name
+
+    def get_ip_by_device_name(self, device_name):
+        '''Método para obter o ip do dispositivo tendo passado o nome do mesmo. Caso não encontre, retorna None
+        Param.
+            device_name (str)        -> O nome do dispositivo que se busca o IPv4
+        Return.
+            ip (str)                 -> O IPv4 do dispositivo'''
+        ip = None
+        for device in  self._devices:
+            if device['device_name'] == device_name:
+                ip = device['ip']
+                break
+        return ip
+    
+
+#### ============ BLOCO DE PUSH E POP BÁSICOS DO BROKER ============ ####   
+    def get_data_from_all_devices(self):
+        ''' Obtem todos os dados de todos os tópicos de dados de todos os dispositivos
+        '''
+        data = [] # [{'device_name': str, 'value': int}]
+        # Passa em todos os tópicos de dados
+        for topicName, value in self._topics.items():
+            if topicName.startswith("data_"):
+                device_name = 'Dispositivo_' + topicName.split('_')[1]
+                value = self.pop_message(topicName)   
+                data.append({'device_name': device_name, 'value': value})   
+        return data          
+
+
+
+    def publish_message(self, TOPIC: str, message: str | int, ip: str) -> bool:
+        ''' Publica determinada mensagem no tópico correspondente. Retorna True se conseguir fazer e False se n conseguir.
+        Olha se o ip tem autorização pra publicar no topico.
         Param.
             TOPIC     (string)          -> Nome do tópico onde a mensagem será publicada
-            message   (dicionário/json) -> Conteúdo da mensagem
-            ip_device (string)          -> Endereço ip do dispositivo que quer publicar a mensagem
+            message   (str | int)       -> Conteúdo da mensagem
+            ip (string)                 -> Endereço ip do dispositivo que quer publicar a mensagem
         Return.
             sucess (bool)               -> True se o processo for concluído sem erro 
         '''
-        topico = self.topico[TOPIC]
+        topico = self._topics[TOPIC]
         # Verifico se ip_device tem permissão de publicar no tópico
         if topico['publisher']== '' or topico['publisher'] == ip:
             # escrevo a mensagem
             topico['values'] = message
 
 
-    def pega_mensagem_e_ouvinte(self) -> Tuple[str, socket.socket]:
-        msg = None
-        conn = None
-        # Percorro todo os tópicos
-        for chave, item in self.topico.items():
-            # Se achei algum tópico com mensagem para enviar
-            if item['values'] is not None:
-                msg = self.pop_message(chave)
-                conn = self._get_conn_for_topic(chave)
-                break
-        # retorno a mensagem e a conexão do ouvinte
-        return msg, conn
+    def read_message(self, TOPIC: str, ip: str) -> int | str:
+        ''' Obtem determinada mensagem no tópico correspondente. Retorna a mensagem, se houver, ou None, se não houver mensagem.
+        Olha se o ip tem autorização pra ler no topico.
+        Param.
+            TOPIC     (string)          -> Nome do tópico onde a mensagem será publicada
+            ip (string)                 -> Endereço ip do dispositivo que quer publicar a mensagem
+        Return.
+            message (int | str)         -> A mensagem que está no tópico
+        '''
+        topico = self._topics[TOPIC]
+        # Verifico se ip_device tem permissão de ler do tópico
+        if topico['publisher'] == '' or topico['publisher'] == ip:
+            # Pego a mensagem
+            return self.pop_message(TOPIC)
+        return None
 
 
-    def _get_conn_for_topic(self, TOPIC: str):
-        '''Se não tiver nenhum dispositivo, conn deverá ser None'''
-        conn = None
-        topico = self.topico[TOPIC]
-        # Pego o nome do device pelo tópico
-        device = topico['subscribe']
-        # Procura na lista de dispositivos qual a conexão correspondentes
-        for dispositivo in self._dispositivos:
-            if dispositivo['device_name'] == device:
-                conn = dispositivo['conexao_tcp']
-                break
-        return conn
-
-    def pega_mensagens_todos_topicos_dados(self):
-        res = []
-        for chave, item in self.topico.items():
-            if chave.startswith('dados_'):
-                res.append({'dispositivo': self.translate_ip_inn_name(item['publisher']), 'value': self.pop_message(chave)})
-        return res
-
-    def translate_ip_inn_name(self, ip):
-        name = None
-        for device in  self._dispositivos:
-            if device['ip'] == ip:
-                name = device['device_name']
-                break
-        return name
+    def push_message(self, TOPIC: str, value: str | int):
+        ''' Faz a publicação de um valor no tópico
+        Param.
+            TOPIC     (string)          -> Nome do tópico onde a mensagem será registrada
+            value     (str|int)         -> Valor que será registrado no tópico
+        '''
+        # Obtenho o tópico
+        topico = self._topics[TOPIC]
+        # Faço o registro do valor no tópico
+        topico['values'] =  value
 
 
-    def pop_message(self, TOPIC: str) -> dict:
-        ''' Obtem determinada mensagem no tópico correspondente. Retorna True se conseguir fazer e false se n conseguir.
-        Olha se o ip_device tem autorização pra ler no topico.
+    def pop_message(self, TOPIC: str) -> int | str:
+        ''' Obtem determinada mensagem no tópico correspondente.
         Param.
             TOPIC     (string)          -> Nome do tópico onde a mensagem será buscada
-            ip_device (string)          -> Endereço ip do dispositivo que quer publicar a mensagem
         Return.
-            message (dict)              -> A mensagem no tópico ou None, se n tiver
+            message (int | str)         -> A mensagem no tópico ou None, se n tiver
         '''
         # Encontro o tópico
-        topico = self.topico[TOPIC]
+        topico = self._topics[TOPIC]
         # Se não tiver nenhuma mensagem na fila
         if topico['values'] == None:
             return None
@@ -133,66 +285,74 @@ class Broker():
             topico['values'] = None
             return resp
 
-
-    def get_registered_devices(self) -> list:
-        ''' Obtem a lista de devices registrados e permitidos na aplicação.
-        Return.
-            list_device_names (list) -> A lista que só contém nomes de devices permitidos
-        '''
-        list_device_names = []
-        for dispositivo in self._dispositivos:
-            list_device_names.append(dispositivo['device_name'])
-        return list_device_names
-    
-    ## NECESSÁRIO INCLUIR O MUTEX
+#### ============ BLOCO DE METODOS USADOS PARA REGISTRAR O DISPOSITIVO NO BROKER ============ ####    
     def register_device(self, conexao: socket.socket, ip: str) -> bool:
-        '''Função que registra determinado device em uma estrutura com os dados'''
-        # Procuro por um slot com o ip especificado na lista de permitidos
-        ## Aqui é como se fosse validar, se eu não especificasse os ips, os dispositivos deveriam ter uma key
-        dispositivo_slot = self._obter_dispositivo_por_ip(ip)
-        # Se eu tiver encontrado algum
-        if dispositivo_slot:
-            # Faço o registro da conexão
-            dispositivo_slot['conexao_tcp'] = conexao
+        '''Função que registra determinado device em uma estrutura com os dados
+        Se receber outra  conexão em um ip já cadastrado, eu rejeito a nova conexão.
+        (USADO PARA REGISTRAR O DEVICE)
+        '''
+        # Procuro descobrir se já tem um dispositivo registrado com determinado IP
+        is_registered = self._is_ip_device_registered(ip) # D
+        # Só faço o registro se não tiver nenhum cadastrado com o mesmo ip, e se a quantidade de disp cadastrados for menor que o máximo permitido
+        if (is_registered == False) and (len(self._devices) < self._LIMIT_DISP_CONNCTED):
+            device_name = 'Dispositivo_' + str(self._disp_num) # Dispositivo_4
+            device = {"device_name": device_name, "ip": ip, "tcp_connection": conexao}
+            self._devices.append(device)
+            ## Ao registrar, devo criar os tópicos associados ao dispositivo
+            self.create_topics_for_new_device(str(self._disp_num), device)
+            # Incremento o numero do proximo dispositivo
+            self._disp_num = self._disp_num + 1
             return True
+        # Se já está registrado, encerro a conexão da nova tentativa
         else:    
             # libero a conexão recebida
             conexao.close()
             return False
 
-    def _obter_dispositivo_por_ip(self, ip: str):
-        for dispositivo in self._dispositivos:
+
+    def create_topics_for_new_device(self, num_device: str, device: dict):
+        '''Cria o tópico de dados e o tópico de comandos do dispositivo
+        (USADO PARA REGISTRAR O DEVICE)
+        '''
+        # Cria o tópico de dados do dispositivo
+        topicNameData = 'data_' + num_device
+        self._topics[topicNameData] = {'publisher': device['ip'], 'subscribe': '', 'values': None}
+        # Cria o tópico de comandos do dispositivo
+        topicNameCommand = 'command_' + num_device
+        self._topics[topicNameCommand] = {'publisher': '', 'subscribe':  device['ip'], 'values': None}
+
+
+    def _is_ip_device_registered(self, ip: str) -> bool:
+        ''' Função que informa se o ip já está registrado na estrutura.
+        (USADO PARA REGISTRAR O DEVICE)
+        '''
+        for dispositivo in self._devices:
             if dispositivo["ip"] == ip:
-                return dispositivo
-        return None
-    
-  
-    
-    ## NECESSÁRIO INCLUIR O MUTEX
-    def register_deviceV2(self, conexao: socket.socket, key: str):
-        '''Função que registra determinado device em uma estrutura com os dados'''
-        chave_descriptografada = self.cipher.decrypt(key)
-        # Se a chave recebida for a mesma permitida
-        if chave_descriptografada == conf['key_allowed']:
-            # Procuro por um slot livre para registro
-            dispositivo_slot = self._obter_slot_livre()
-            # Se tiver achado o slot
-            if dispositivo_slot:
-                # Faço o registro da conexão
-                dispositivo_slot['conexao_tcp'] = conexao
                 return True
-        else:    
-            # libero a conexão recebida
-            conexao.close()
-            return False            
+        return False
     
-    def _obter_slot_livre(self):
-        for dispositivo in self._dispositivos:
-            # Se tiver um slot sem a conexão preenchida
-            if dispositivo["conexao_tcp"] == None:
-                return dispositivo
-        return None     
-    
+    def delete_device(self, ip: str):
+        '''Metodo para deletar um dispositivo e seus tópicos da estrutura'''
+        device_name = self.get_device_name_by_ip(ip)
+        device_num = device_name.split('_')[1]
+        ## Deleta o dispositivo da lista de devices
+        for device in self._devices:
+            # Verifica se o dispositivo para excluir está presente na lista
+            if device['ip'] == ip:
+                # Remove o dispositivo da lista
+                self._devices.remove(device)
+        ## Deleta os tópicos associados
+        # Deleta o tópico de comando
+        topic_name = 'command_' + device_num
+        del self._topics[topic_name]
+        # Deleta o tópico de dados
+        topic_name = 'data_' + device_num
+        del self._topics[topic_name]
+        print(self._devices)
+        print(self._topics)
+
+  
+#### ============ BLOCO ============ ####    ??????????????????????????
     def get_topic_to_ip(self, ip: str):
         # Aqui eu pego o nome do device
         device = self._obter_dispositivo_por_ip(ip)
@@ -200,3 +360,15 @@ class Broker():
         topic = 'dados_'+str(num)
         return topic
         # Aqui eu descubro o tópico dele
+
+#### ============ BLOCO DE METODOS PARA TERCEIROS ============ ####    
+    def get_registered_devices(self) -> list:
+        ''' Obtem a lista de devices registrados na aplicação.
+        (Útil para o uso da aplicação gráfica)
+        Return.
+            list_device_names (list) -> A lista que só contém nomes de devices permitidos
+        '''
+        list_device_names = []
+        for dispositivo in self._devices:
+            list_device_names.append(dispositivo['device_name'])
+        return list_device_names

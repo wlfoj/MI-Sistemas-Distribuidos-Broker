@@ -1,29 +1,47 @@
 version: '3.8'
 
 services:
-  meu_servico1:
-    image: nome_da_sua_imagem
+  broker:
+    build:
+      context: ./caminho/do/seu/dockerfile_dispositivo1
+      dockerfile: Dockerfile_dispositivo1
     networks:
       minha_rede:
         ipv4_address: 192.168.0.2
 
-  meu_servico2:
-    image: nome_da_sua_imagem
+  device1:
+    build:
+      context: ./caminho/do/seu/dockerfile_dispositivo1
+      dockerfile: Dockerfile_dispositivo1
+    depends_on:
+      - broker
     networks:
       minha_rede:
         ipv4_address: 192.168.0.3
 
-  meu_servico3:
+  device2:
     image: nome_da_sua_imagem
+    depends_on:
+      - broker
     networks:
       minha_rede:
         ipv4_address: 192.168.0.4
 
-  meu_servico4:
+  device3:
     image: nome_da_sua_imagem
+    depends_on:
+      - broker
     networks:
       minha_rede:
         ipv4_address: 192.168.0.5
+
+  device4:
+    image: nome_da_sua_imagem
+    depends_on:
+      - broker
+    networks:
+      minha_rede:
+        ipv4_address: 192.168.0.6
 
 networks:
   minha_rede:
@@ -31,3 +49,48 @@ networks:
       driver: default
       config:
         - subnet: 192.168.0.0/24
+
+
+
+
+version: '3'
+
+services:
+  broker:
+    image: seu_broker_image
+    # Configurações do seu broker
+    networks:
+      - minha_rede
+
+  dispositivo1:
+    image: sua_imagem_dispositivo
+    # Configurações do dispositivo 1
+    networks:
+      - minha_rede
+
+  dispositivo2:
+    image: sua_imagem_dispositivo
+    # Configurações do dispositivo 2
+    networks:
+      - minha_rede
+
+  dispositivo3:
+    image: sua_imagem_dispositivo
+    # Configurações do dispositivo 3
+    networks:
+      - minha_rede
+
+  dispositivo4:
+    image: sua_imagem_dispositivo
+    # Configurações do dispositivo 4
+    networks:
+      - minha_rede
+
+networks:
+  minha_rede:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.0.0/16
+

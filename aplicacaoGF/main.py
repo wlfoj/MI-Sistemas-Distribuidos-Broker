@@ -4,7 +4,7 @@ from tkinter import ttk, messagebox
 import requests
 
 ## =============================== BLOCO DE INICIALIZAÇÃO DE VARIAVEIS =============================== ##
-url_api = "http://127.0.0.1:5000"
+url_api = "http://127.0.0.1:5005"
 opcoes_comando = ["Ligar", "Desligar", "Pausar", "Continuar"]
 lista_dispositivos = []
 ## =============================== BLOCO DE FUNÇÕES PARA INICIALIZAÇÃO =============================== ##
@@ -42,9 +42,9 @@ def enviar_comando():#ok
         messagebox.showinfo("Erro", "Selecione o comando e o dispositivo presente nas opções")
         return 0
     ## Gerando o nome do topico a partir do número do dispositivo
-    topic_name = "comando_"
+    topic_name = "command_"
     topic_name = topic_name + dispositivo_selecionado.split('_')[1] # Pega o número do dispositivo
-    url = url_api+"/pub"
+    url = url_api+"/pub/"+ topic_name
     # Aqui você pode adicionar lógica para enviar o comando para o dispositivo selecionado
     # Monta os dados
     dados = {'message': comando_selecionado, 'topico': topic_name,'remetente': 'aplicação'}
@@ -106,7 +106,7 @@ frame_dados_recebidos = ttk.LabelFrame(root, text="Dados Recebidos")
 frame_dados_recebidos.pack(padx=10, pady=10, fill="both", expand=True)
 
 # Tabela para exibir os dados recebidos
-colunas = ("Dado", "Valor")
+colunas = ("Dispositivo", "Valor Leitura")
 tabela = ttk.Treeview(frame_dados_recebidos, columns=colunas, show="headings")
 for col in colunas:
     tabela.heading(col, text=col)
@@ -122,22 +122,27 @@ def atualizar_tabela(dados_recebidos):
     erro = False
     try:
         response = requests.get(url).json()
+        print(response)
     except:
         erro = True
     for row in tabela.get_children():
         tabela.delete(row)
     for dado in response:
-        aux = (dado['dispositivo'], dado['value'])
+        aux = (dado['device_name'], dado['value'])
         tabela.insert("", "end", values=aux)
 
-
+def atualizar_lista_dispositivos():
+    '''Atualiza a lista de dispositivos na interface gráfica.'''
+    global lista_dispositivos
+    lista_dispositivos = get_devices()
+    dispositivo_dropdown['values'] = lista_dispositivos
 
 
 def atualizar_periodicamente():
     # Atualiza a tabela de (NOME_DISP, VALOR LIDO)
-    atualizar_tabela(dados_recebidos + [("Novo Dado", "Novo Valor")])
+    atualizar_tabela(dados_recebidos)
     # Atualiza a lista de dispositivos
-    get_devices()
+    atualizar_lista_dispositivos()
     # faz a atualização a cada 5s
     root.after(5000, atualizar_periodicamente)
 

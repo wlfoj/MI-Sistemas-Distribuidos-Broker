@@ -19,5 +19,9 @@ Vai ter um parser para controlar o formato que vai receber dos dados
 broker só permite a conexão tcp de dispositivos especificos
 Vai ter uma thread só para ficar ouvindo conexões e registrando as mesmas
 
+- E quando o dispositivo for descontado?
+- Como colocar o mutex e onde  colocar?????
+- remover a verifiicação se o ip pode publicar ou não, pq já verifico qual o tópico que o  device pode ouvir e publicar antes de o fazer
+
 ## Observação especial é que no caso do topico de comandos, só permito um unico inscrito
 ## Observação especial é que no caso do topico de dados, só permito um unico publicador
