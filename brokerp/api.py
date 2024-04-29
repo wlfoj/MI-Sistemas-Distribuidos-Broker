@@ -11,6 +11,9 @@ from SERVER_UDP import thread_udp_receiver
 from config import conf
 from broker import Broker
 
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 app = Flask(__name__)
 #cache = Cache(app, config={'CACHE_TYPE': 'simple'})  # Configuração básica de cache
 broker = Broker()
@@ -38,6 +41,9 @@ def post_mensagem(topic: str):
 
 
 
+@app.route('/', methods=['GET'])
+def hello():
+    return 'HELLO WORLD'
 
 @app.route('/sub', methods=['GET'])
 #@cache.cached(timeout=2)  # Cache válido por 60 segundos
@@ -100,7 +106,7 @@ if __name__ == '__main__':
     # Dou start na thread de processamento
     # Dou start na thread do broker????
     # Dou start no api restful
-    app.run(port=5005)
+    app.run(port=5005, host='0.0.0.0')
 
     thread_listen_tcp.join()
     thread_udp.join()

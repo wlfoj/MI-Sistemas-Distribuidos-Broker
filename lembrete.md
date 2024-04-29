@@ -28,7 +28,8 @@
 
 !!!! ADICIONAR LOGS NO DEVICE E NO BROKER
 
-!!!! USAR DOCKERRRRR
+um erro aparece quando inicio o broker, depois o device, aí eu destruo o device e depois tento iniciar novamente.
+
 
 
 

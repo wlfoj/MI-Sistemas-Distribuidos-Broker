@@ -2,6 +2,8 @@ import os
 
 from Device import Sensor, Status
 
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def cleanScreen():
     if os.name == 'posix': # Verifica se é um sistema tipo Unix (Linux, macOS, etc.)
@@ -45,6 +47,7 @@ def changeDataMenu(device: Sensor):
 
 def mainMenu(device: Sensor):
     ''' Menu principal do sistema, permite que escolha algumas ações. Será uma thread    '''
+    logging.info(f'MENU - Thread para controle de dispositivo manualmente iniciada')
     while 1:
         try:
             print(f"O dispositivo está {device.get_status()} com dado de leitura {device.get_data()}")
@@ -52,7 +55,6 @@ def mainMenu(device: Sensor):
             response = int(input("Sua opção: "))
             # faço a validação das opções
             if response in [1,2,3,4] :
-                print( 'entrei')
                 decisionMaker(response, device)
             else:
                 raise Exception

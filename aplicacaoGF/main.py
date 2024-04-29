@@ -122,14 +122,14 @@ def atualizar_tabela(dados_recebidos):
     erro = False
     try:
         response = requests.get(url).json()
-        print(response)
     except:
         erro = True
-    for row in tabela.get_children():
-        tabela.delete(row)
-    for dado in response:
-        aux = (dado['device_name'], dado['value'])
-        tabela.insert("", "end", values=aux)
+    if response:
+        for row in tabela.get_children():
+            tabela.delete(row)
+        for dado in response:
+            aux = (dado['device_name'], dado['value'])
+            tabela.insert("", "end", values=aux)
 
 def atualizar_lista_dispositivos():
     '''Atualiza a lista de dispositivos na interface gráfica.'''

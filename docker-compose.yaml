@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  broker:
+    build:
+      context: ./brokerp
+      dockerfile: Dockerfile
+    ports:
+      - "5005:5005"  # Mapeia a porta 5005 do serviço app1 para a porta 5005 do host (seu computador)
+    networks:
+      minha_rede:
+        ipv4_address: 192.168.0.2
+
+  device1:
+    build:
+      context: ./dispositivo
+      dockerfile: Dockerfile
+    depends_on:
+      - broker
+    tty: true
+    networks:
+      minha_rede:
+        ipv4_address: 192.168.0.3
+
+  device2:
+    build:
+      context: ./dispositivo
+      dockerfile: Dockerfile
+    depends_on:
+      - broker
+    tty: true
+    networks:
+      minha_rede:
+        ipv4_address: 192.168.0.4
+
+  device3:
+    build:
+      context: ./dispositivo
+      dockerfile: Dockerfile
+    depends_on:
+      - broker
+    tty: true
+    networks:
+      minha_rede:
+        ipv4_address: 192.168.0.5
+
+  device4:
+    build:
+      context: ./dispositivo
+      dockerfile: Dockerfile
+    depends_on:
+      - broker
+    tty: true
+    networks:
+      minha_rede:
+        ipv4_address: 192.168.0.6
+
+networks:
+  minha_rede:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/24
+
