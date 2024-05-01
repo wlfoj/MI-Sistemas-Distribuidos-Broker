@@ -38,7 +38,7 @@ def enviar_comando():#ok
     comando_selecionado = tipo_comando_var.get()
     dispositivo_selecionado = dispositivo_var.get()
     ###
-    if (comando_selecionado not in opcoes_comando) and (dispositivo_selecionado not in lista_dispositivos):
+    if (comando_selecionado == "") and (dispositivo_selecionado == ""):
         messagebox.showinfo("Erro", "Selecione o comando e o dispositivo presente nas opções")
         return 0
     ## Gerando o nome do topico a partir do número do dispositivo
@@ -88,13 +88,13 @@ dispositivo_var = tk.StringVar()
 # Dropdown para selecionar o tipo de comando
 tipo_comando_label = ttk.Label(frame_envio_comando, text="Tipo de Comando:")
 tipo_comando_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
-tipo_comando_dropdown = ttk.Combobox(frame_envio_comando, textvariable=tipo_comando_var, values=opcoes_comando)
+tipo_comando_dropdown = ttk.Combobox(frame_envio_comando, textvariable=tipo_comando_var, values=opcoes_comando, state='readonly')
 tipo_comando_dropdown.grid(row=0, column=1, padx=5, pady=5)
 
 # Dropdown para selecionar o dispositivo
 dispositivo_label = ttk.Label(frame_envio_comando, text="Dispositivo:")
 dispositivo_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
-dispositivo_dropdown = ttk.Combobox(frame_envio_comando, textvariable=dispositivo_var, values= lista_dispositivos)
+dispositivo_dropdown = ttk.Combobox(frame_envio_comando, textvariable=dispositivo_var, values= lista_dispositivos, state='readonly')
 dispositivo_dropdown.grid(row=1, column=1, padx=5, pady=5)
 
 # Botão para enviar o comando

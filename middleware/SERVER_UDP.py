@@ -1,7 +1,7 @@
 import socket
 from Utils import Utils
 from cryptography.fernet import Fernet
-from broker import Broker
+from Broker import Broker
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

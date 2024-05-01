@@ -1,6 +1,6 @@
 import socket
 from cryptography.fernet import Fernet
-from broker import Broker
+from Broker import Broker
 import json
 from config import conf
 
@@ -31,23 +31,27 @@ def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker, decr
                 # ============ Valido a conexão ============= #
                 if mensagem_json_dict['key'] == conf['key_conn']:
                     # Registra o cliente no broker
-                    broker.register_device(conexao, cliente[0])
-                    logging.info(f'TCP LISTEN CONN - Conexão aceita de {cliente[0]} e registrada no BROKER')
-                    # Envio a confirmação
-                                        # Monta o obj
-                    obj_to_send = {'is_acc': True}
-                    # Criptografa
-                    obj_encrypted = Utils.encrypt(decrypt, obj_to_send)
-                    # Envia
-                    conexao.send(obj_encrypted)
-                    #print(broker._dispositivos)
+                    confirm = broker.register_device(conexao, cliente[0])
+                    if confirm:
+                        logging.info(f'TCP LISTEN CONN - Conexão aceita de {cliente[0]} e registrada no BROKER')
+                        # Envio a confirmação
+                                            # Monta o obj
+                        obj_to_send = {'is_acc': True}
+                        # Criptografa
+                        obj_encrypted = Utils.encrypt(decrypt, obj_to_send)
+                        # Envia
+                        conexao.send(obj_encrypted)
+                        #print(broker._dispositivos)
+                    else:
+                        logging.warning(f'TCP LISTEN CONN - Conexão de {cliente[0]} rejeitada pelo BROKER')
+                        conexao.close()
                 else:
                     obj_to_send = {'is_acc': False}
                     # Criptografa
                     obj_encrypted = Utils.encrypt(decrypt, obj_to_send)
                     # Envia
                     conexao.send(obj_encrypted)
-                    logging.warning(f'TCP LISTEN CONN - Conexão rejeitada de {cliente[0]}')
+                    logging.warning(f'TCP LISTEN CONN - Conexão de {cliente[0]} rejeitada, pois a chave está incorreta')
                     conexao.close()
             except:
                 obj_to_send = {'is_acc': False}
@@ -55,7 +59,7 @@ def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker, decr
                 obj_encrypted = Utils.encrypt(decrypt, obj_to_send)
                 # Envia
                 conexao.send(obj_encrypted)
-                logging.warning(f'TCP LISTEN CONN - Conexão rejeitada de {cliente[0]}')
+                logging.warning(f'TCP LISTEN CONN - Conexão de {cliente[0]} rejeitada, pois a chave está incorreta')
                 conexao.close()
  
 
@@ -83,9 +87,22 @@ def thread_send_message(broker: Broker, encrypt: Fernet):
                     info['conn'].send(obj_encrypted) # Envio a mensagem para a conexão correspondente
                 except ConnectionResetError:
                     info['conn'].close()
-                    broker.delete_device()
+                    broker.delete_device(ip)
                     logging.warning(f'TCP - O dispositivo {ip} foi desconectado e por isso removido do broker')
 
 
 
 
+def thread_check_conn_health(broker: Broker):
+    '''Thread para verificar se uma conexão está ativa e destruir ela se não estiver'''
+    logging.info(f'TCP HEALTH CONN - Thread para verificar a saúde das conexões iniciada')
+    #{"device_name":"", "ip": '', "tcp_connection": None}
+    while True:
+        for device in broker.get_devices():
+            try:
+                # Tenta obter o nome do par remoto (endereço IP e porta)
+                peername = device['tcp_connection'].getpeername()
+            except OSError:
+                # Se ocorrer um erro, a conexão não está mais ativa
+                broker.delete_device(device['ip'])
+                logging.warning(f"TCP HEALTH CONN - O dispositivo {device['ip']} foi desconectado e por isso removido do broker") 

@@ -32,6 +32,8 @@ def try_connect_to_broker(socket_tcp: socket.socket, fernet: Fernet):
     socket_tcp.sendto(dado_criptografado, (conf['broker_host_ip'], conf['broker_host_port_udp']))
     # Espero o servidor me informar se consegui ser cadastrado
     data_received = socket_tcp.recv(1024)
+    #InvalidToken
+    print(data_received)
     msg_decrypted = Utils.decrypt(fernet, data_received)
     # Caso o status mostre que não consegui ser cadastrado, encerro o programa
     if msg_decrypted['is_acc'] == False:

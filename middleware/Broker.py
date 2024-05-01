@@ -1,10 +1,11 @@
 import socket
-from typing import Tuple
+import threading
 
 
 class Broker():
 
     def __init__(self):
+        self.mutex = threading.Lock()
         self._LIMIT_DISP_CONNCTED = 10
         self._disp_num = 0 # Representa o número de disposiitivo conectado
         self._devices = [] # A lista de dispositivos {"device_name":"", "ip": '', "tcp_connection": None}
@@ -372,3 +373,8 @@ class Broker():
         for dispositivo in self._devices:
             list_device_names.append(dispositivo['device_name'])
         return list_device_names
+    
+
+    def get_devices(self) -> list:
+        '''Função que retorna a lista de devices para que eu possa iterar sobre ela'''
+        return self._devices

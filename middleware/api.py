@@ -5,11 +5,11 @@ import socket
 import threading
 from cryptography.fernet import Fernet
 
-from SERVER_TCP import thread_listen_conections_tcp, thread_send_message
+from SERVER_TCP import thread_listen_conections_tcp, thread_send_message, thread_check_conn_health
 from SERVER_UDP import thread_udp_receiver
 
 from config import conf
-from broker import Broker
+from Broker import Broker
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -95,10 +95,12 @@ if __name__ == '__main__':
     thread_udp = threading.Thread(target=thread_udp_receiver, args=[udp, broker, fernet])
     thread_listen_tcp = threading.Thread(target=thread_listen_conections_tcp, args=[tcp, broker, fernet])
     thread_send_tcp = threading.Thread(target=thread_send_message, args=[broker, fernet])
+    # thread_health_tcp = threading.Thread(target=thread_check_conn_health, args=[broker])
     ## Dá start nas threads 
     thread_listen_tcp.start()
     thread_udp.start()
     thread_send_tcp.start()
+    # thread_health_tcp.start()
     #
 
     # Pro caso de dar erro???
@@ -110,4 +112,6 @@ if __name__ == '__main__':
 
     thread_listen_tcp.join()
     thread_udp.join()
+    thread_send_tcp.join()
+    # thread_health_tcp.join()
 
