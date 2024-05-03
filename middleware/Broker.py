@@ -45,6 +45,7 @@ class Broker():
         resp = []
         st = {"conn": None, "ip": None, "msg": None}
         # Percorro todo os tópicos
+        self.mutex.acquire()
         for chave, item in self._topics.items():
             # Se achei algum tópico com mensagem para enviar, adiciono na lista de operação
             if item['values'] is not None and chave.startswith('command'):
@@ -53,6 +54,7 @@ class Broker():
                 st['conn'] = self.get_conn_by_ip(st["ip"]) # Pego a conexão do ip de quem vai receber
                 resp.append(st)
         # retorno a mensagem e a conexão do ouvinte
+        self.mutex.release()
         return resp
 
 
@@ -62,18 +64,22 @@ class Broker():
         _topics = self._topics[TOPIC]
         # Pego o nome do device pelo tópico
         device = _topics['subscribe']
+        self.mutex.acquire()
         # Procura na lista de dispositivos qual a conexão correspondentes
         for dispositivo in self._devices:
             if dispositivo['device_name'] == device:
                 conn = dispositivo['conexao_tcp']
                 break
+        self.mutex.release()
         return conn
 
     def pega_mensagens_todos__topicss_dados(self):
         res = []
+        self.mutex.acquire()
         for chave, item in self._topics.items():
             if chave.startswith('dados_'):
                 res.append({'dispositivo': self.translate_ip_inn_name(item['publisher']), 'value': self.pop_message(chave)})
+        self.mutex.release()
         return res
 
 
@@ -87,12 +93,14 @@ class Broker():
             topic_name (str) -> O nome do tópico em que o IP é publicador
         '''
         topic_name = None
+        self.mutex.acquire()
         # Percorre a lista de tópicos
         for topicName, value in self._topics.items():
             # para cada value = {'publisher': device['ip'], 'subscribe': '', 'values': None}
             if value['publisher'] == ip:
                 topic_name = topicName
                 break # o break é pq estou suponto ter apenas um
+        self.mutex.release()
         return topic_name
     
 
@@ -104,12 +112,14 @@ class Broker():
             topic_name (str) -> O nome do tópico em que o IP é ouvinte
         '''
         topic_name = None
+        self.mutex.acquire()
         # Percorre a lista de tópicos
         for topicName, value in self._topics.items():
             # para cada value = {'publisher': device['ip'], 'subscribe': '', 'values': None}
             if value['subscribe'] == ip:
                 topic_name = topicName
                 break # o break é pq estou suponto ter apenas um
+        self.mutex.release()
         return topic_name
 
 
@@ -120,10 +130,12 @@ class Broker():
         Return.
             conn (socket.socket)      -> A conexão TCP dispositivo correspondente ao IPv4'''
         conn = None
+        self.mutex.acquire()
         for device in  self._devices:
             if device['device_name'] == device_name:
                 conn = device['tcp_connection']
                 break
+        self.mutex.release()
         return conn
     
 
@@ -134,10 +146,12 @@ class Broker():
         Return.
             conn (socket.socket)      -> A conexão TCP dispositivo correspondente ao IPv4'''
         conn = None
+        self.mutex.acquire()
         for device in  self._devices:
             if device['ip'] == ip:
                 conn = device['tcp_connection']
                 break
+        self.mutex.release()
         return conn
 
 
@@ -148,10 +162,12 @@ class Broker():
         Return.
             name (str)      -> O nome do dispositivo correspondente ao IPv4'''
         name = None
+        self.mutex.acquire()
         for device in  self._devices:
             if device['ip'] == ip:
                 name = device['device_name']
                 break
+        self.mutex.release()
         return name
 
     def get_ip_by_device_name(self, device_name):
@@ -161,10 +177,12 @@ class Broker():
         Return.
             ip (str)                 -> O IPv4 do dispositivo'''
         ip = None
+        self.mutex.acquire()
         for device in  self._devices:
             if device['device_name'] == device_name:
                 ip = device['ip']
                 break
+        self.mutex.release()
         return ip
     
 
@@ -213,12 +231,15 @@ class Broker():
         Return.
             message (int | str)         -> A mensagem que está no tópico
         '''
+        msg = None
+        self.mutex.acquire()
         topico = self._topics[TOPIC]
         # Verifico se ip_device tem permissão de ler do tópico
         if topico['publisher'] == '' or topico['publisher'] == ip:
             # Pego a mensagem
-            return self.pop_message(TOPIC)
-        return None
+            msg = self.pop_message(TOPIC)
+        self.mutex.release()
+        return msg
 
 
     def push_message(self, TOPIC: str, value: str | int):
@@ -228,11 +249,9 @@ class Broker():
             value     (str|int)         -> Valor que será registrado no tópico
         '''
         # Obtenho o tópico
-        self.mutex.acquire()
         topico = self._topics[TOPIC]
         # Faço o registro do valor no tópico
         topico['values'] =  value
-        self.mutex.release()
 
 
     def pop_message(self, TOPIC: str) -> int | str:
@@ -242,14 +261,12 @@ class Broker():
         Return.
             message (int | str)         -> A mensagem no tópico ou None, se n tiver
         '''
-        self.mutex.acquire()
         # Encontro o tópico
         topico = self._topics.get(TOPIC, None)
         # Se não tiver nenhuma mensagem na fila
         if topico == None:
             return None
         if topico['values'] == None:
-            self.mutex.release()
             return None
         # Se tiver mensagem na fila
         else:
@@ -257,7 +274,6 @@ class Broker():
             resp = topico['values']
             # Retiro da fila
             topico['values'] = None
-            self.mutex.release()
             return resp
 
 #### ============ BLOCO DE METODOS USADOS PARA REGISTRAR O DISPOSITIVO NO BROKER ============ ####    
@@ -293,12 +309,10 @@ class Broker():
         '''
         # Cria o tópico de dados do dispositivo
         topicNameData = 'data_' + num_device
-        self.mutex.acquire()
         self._topics[topicNameData] = {'publisher': device['ip'], 'subscribe': '', 'values': None}
         # Cria o tópico de comandos do dispositivo
         topicNameCommand = 'command_' + num_device
         self._topics[topicNameCommand] = {'publisher': '', 'subscribe':  device['ip'], 'values': None}
-        self.mutex.release()
 
 
     def _is_ip_device_registered(self, ip: str) -> bool:

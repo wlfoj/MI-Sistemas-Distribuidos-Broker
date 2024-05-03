@@ -21,7 +21,7 @@ class Utils():
         '''Método para desincriptar um determinado recebimento (bytes)
         Return.
             mensagem_json_dict -> Objeto json/dict'''
-        msg = msg.decode('utf-8') 
+        # msg = msg.decode('utf-8') 
         # Tira da criptografia
         mensagem_descriptografado = fernet.decrypt(msg) # Retorna os bytes
         # Converte a mensagem de bytes para string

@@ -13,7 +13,7 @@ from myUdpSet import senderDataUdp
 from myTcpSet import receiverCommandTcp, try_connect_to_broker
 
 import logging
-logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 ## ====================== BLOCO DE FUNÇÕES AUXILIARES ====================== ##
    
@@ -24,7 +24,9 @@ dispositivo = Sensor("Meu dispositivo", 25)
 fernet = Fernet(conf['key_crypt']) 
 ###### ====================== BLOCO DE CRIAÇÃO DOS SOCKETS ====================== ######
 socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+print("vou começar")
 ### Tenta a conexão TCP ###
 conn = False
 while conn == False:
@@ -41,6 +43,7 @@ while conn == False:
 
 
 ###### =========== BLOCO DE CRIAÇÃO DA THREADS =========== ######
+print("Estou criando threads")
 # == Controle de quando enviar dados via UDP == ##
 thread_udp = threading.Thread(target=senderDataUdp, args=[dispositivo, socket_udp, fernet])
 thread_udp.daemon = True
