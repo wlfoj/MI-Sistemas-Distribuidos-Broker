@@ -231,10 +231,12 @@ class Broker():
             sucess (bool)               -> True se o processo for concluído sem erro 
         '''
         topico = self._topics[TOPIC]
+        self.mutex.acquire()
         # Verifico se ip_device tem permissão de publicar no tópico
         if topico['publisher']== '' or topico['publisher'] == ip:
             # escrevo a mensagem
             topico['values'] = message
+        self.mutex.release()
 
 
     def read_message(self, TOPIC: str, ip: str) -> int | str:
@@ -263,7 +265,9 @@ class Broker():
         # Obtenho o tópico
         topico = self._topics[TOPIC]
         # Faço o registro do valor no tópico
+        self.mutex.acquire()
         topico['values'] =  value
+        self.mutex.release()
 
 
     def pop_message(self, TOPIC: str) -> int | str:
@@ -275,8 +279,10 @@ class Broker():
         '''
         # Encontro o tópico
         topico = self._topics[TOPIC]
+        self.mutex.acquire()
         # Se não tiver nenhuma mensagem na fila
         if topico['values'] == None:
+            self.mutex.release()
             return None
         # Se tiver mensagem na fila
         else:
@@ -284,6 +290,7 @@ class Broker():
             resp = topico['values']
             # Retiro da fila
             topico['values'] = None
+            self.mutex.release()
             return resp
 
 #### ============ BLOCO DE METODOS USADOS PARA REGISTRAR O DISPOSITIVO NO BROKER ============ ####    
@@ -370,8 +377,9 @@ class Broker():
             list_device_names (list) -> A lista que só contém nomes de devices permitidos
         '''
         list_device_names = []
-        for dispositivo in self._devices:
-            list_device_names.append(dispositivo['device_name'])
+        devices = self.get_devices()
+        for device in devices:
+            list_device_names.append(device['device_name'])
         return list_device_names
     
 

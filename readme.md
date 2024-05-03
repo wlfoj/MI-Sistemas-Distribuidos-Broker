@@ -6,7 +6,7 @@ Em 'dispositivo' tem os arquivos necessários a execução do processo do device
 Em 'middleware' estão os arquivos referentes ao processo do Broker. Em 'config.py' tem as infoormações para realizar as comunicações com o os dispositivos e a aplicação, como as portas TCp e UDP que o mesmo escuta, bem como os endereços IPv4 que a API Restfull irá permitir receber requisições e os endereços ao qual se aceitará conexões TCP. Ainda em 'config.py' há as informações necessárias para autenticação dos dispositivos e criptografia das informações, bem como apresentado em 'dispositivo'. Os arquivos 'SERVER_TCP.py' e 'SERVER_UDP.py' tratam das rotinas executadas nas threads que lidam com o protocolo TCP e UDp respectivamente. 'Broker.py' apresenta a classe que representa o broker e nele há toda a gerência dos dispositivos conectados e seus respectivos tópicos. Em 'api.py' tem a declaração dos endpoints e tudo o mais relacionado a API Restful, porém fez-se do arquivo o main de todo o processo, então tem-se a iniciação dos sockets e etc.
 
 Os arquivos Utils.py contém rotinas que auxiliam ao encryptar e desencryptar os dados.
-
+**!!!!!!!!!!!!!!! PRECISA COLOCAR O MUTEX EM BROKER!!!!!!!!!!!!!!!!!!!!!!!!**
 
 # 0. Passo a passo para execução (FEITO)
 ### 0.1 Criação dos containers
