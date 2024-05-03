@@ -356,8 +356,6 @@ class Broker():
         # Deleta o tópico de dados
         topic_name = 'data_' + device_num
         del self._topics[topic_name]
-        print(self._devices)
-        print(self._topics)
 
   
 #### ============ BLOCO ============ ####    ??????????????????????????

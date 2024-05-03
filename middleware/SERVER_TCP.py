@@ -100,8 +100,8 @@ def thread_check_conn_health(broker: Broker):
     while True:
         for device in broker.get_devices():
             try:
-                # Tenta obter o nome do par remoto (endereço IP e porta)
-                peername = device['tcp_connection'].getpeername()
+                # Tenta enviar uma especie de ping que será desconsiderado peo dispositivo, apenas para verificar se ainda está conectado
+                device['tcp_connection'].send(b'')
             except OSError:
                 # Se ocorrer um erro, a conexão não está mais ativa
                 broker.delete_device(device['ip'])

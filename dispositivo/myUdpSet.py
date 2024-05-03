@@ -8,7 +8,7 @@ import time
 from cryptography.fernet import Fernet
 
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def senderDataUdp(device: Sensor, socket: socket.socket, encrypt: Fernet):
     '''Função para ser usada como thread para ficar sempre enviando dados para o Broker via UDP.

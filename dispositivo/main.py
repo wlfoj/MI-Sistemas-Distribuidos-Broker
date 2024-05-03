@@ -13,7 +13,7 @@ from myUdpSet import senderDataUdp
 from myTcpSet import receiverCommandTcp, try_connect_to_broker
 
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 ## ====================== BLOCO DE FUNÇÕES AUXILIARES ====================== ##
    
