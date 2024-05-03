@@ -26,11 +26,19 @@ fernet = Fernet(conf['key_crypt'])
 socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 ### Tenta a conexão TCP ###
-try:
-    socket_tcp = try_connect_to_broker(fernet)
-except:
-    logging.critical(f'TCP CONN - Não foi possível estabelecer conexão com broker, o sistema será interrompido.')
-    sys.exit()
+conn = False
+while conn == False:
+    try:
+        logging.critical(f'TCP - Iniciando a tentativa de conexão com o Broker.')
+        socket_tcp = try_connect_to_broker(fernet)
+        if socket_tcp == None:
+            sys.exit() # Se o token for inválido ou etc, já encerro o device
+        conn = True # Mudo a variavel de controle do loop, pois se consegui me conectar já posso prosseguir.
+    except:
+        conn = False
+        socket_tcp.close() # Fecho a conexão para tentar reiniciar
+        logging.critical(f'TCP - Não foi possível estabelecer conexão com o Broker.')
+
 
 ###### =========== BLOCO DE CRIAÇÃO DA THREADS =========== ######
 # == Controle de quando enviar dados via UDP == ##

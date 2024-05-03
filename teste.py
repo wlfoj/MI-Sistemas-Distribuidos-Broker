@@ -1,4 +1,4 @@
-# dicionario = {'comando1': 1212, 'comando2': 1212, 'comando3': 1212}
+dicionario = {'comando1': 1212, 'comando2': 1212, 'comando3': 1212}
 
 # # Percorre o dicionário e imprime cada chave e valor
 # for chave, valor in dicionario.items():
@@ -20,7 +20,4 @@
 # print(lista)
 
 
-topicos = {}
-
-for chave, item in topicos.items():
-    print(chave, item)
+print(dicionario['teste'])

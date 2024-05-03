@@ -67,7 +67,7 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket, decrypt: Fernet):
             ## Verifico se o dado recebido é só um ping de verificação se a conexão existe
         except ConnectionResetError:
             socket.close()
-            logging.critical(f'TCP - Conexão com BROKER foi perdida. A Thread que escuta mensagens TCP será encerrada e a aplicação deve ser reiniciada.')
+            logging.critical(f'TCP CONN - Conexão com BROKER foi perdida.')
             conn = False
             while conn == False:
                 logging.info(f'TCP CONN - Iniciando nova tentativa de conexão com o BROKER.')
@@ -75,7 +75,6 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket, decrypt: Fernet):
                     socket = try_connect_to_broker(decrypt)
                     conn = True
                 except Exception as e:
-                    print(e)
                     logging.critical(f'TCP CONN - Não foi possível estabelecer conexão com broker.')
             continue
         # Se recbi algum dado

@@ -79,43 +79,6 @@ class Broker():
 
 
 #### ============ BLOCO DE MÉTODOS AUXILIARES ============ ####  
-    def get_topic_name_publisher_by_device_name(self, device_name):
-        '''Método para obter os nomes dos tópicos em que um ip está cadastrado como publicador.
-        Param.
-            device_name (str)       -> Nome do dispositivo que se busca o nome do tópico
-        Return.
-            topic_name (str)        -> O nome do tópico em que o device_name é publiciador
-        '''
-        topic_name = None
-        # Percorre a lista de tópicos
-        for topicName, value in self._topics.items():
-            # para cada value = {'publisher': device['ip'], 'subscribe': '', 'values': None}
-            if value['publisher'] == ip:
-                topic_name = topicName
-                break # o break é pq estou suponto ter apenas um
-        return topic_name
-    
-
-    def get_topic_name_subscriber_by_device_name(self, device_name):
-        '''Método para obter os nomes dos tópicos em que um ip está cadastrado como ouvinte.
-        Param.
-            device_name (str)       -> Nome do dispositivo que se busca o nome do tópico
-        Return.
-            topic_name (str)        -> O nome do tópico em que o device_name é ouvinte
-        '''
-        topic_name = None
-        # Percorre a lista de tópicos
-        for topicName, value in self._topics.items():
-            # para cada value = {'publisher': device['ip'], 'subscribe': '', 'values': None}
-            if value['subscribe'] == ip:
-                topic_name = topicName
-                break # o break é pq estou suponto ter apenas um
-        return topic_name
-
-
-
-
-
     def get_topic_name_publisher_by_ip(self, ip):
         '''Método para obter os nomes dos tópicos em que um ip está cadastrado como publicador.
         Param.
@@ -210,12 +173,14 @@ class Broker():
         ''' Obtem todos os dados de todos os tópicos de dados de todos os dispositivos
         '''
         data = [] # [{'device_name': str, 'value': int}]
+        self.mutex.acquire()
         # Passa em todos os tópicos de dados
         for topicName, value in self._topics.items():
             if topicName.startswith("data_"):
                 device_name = 'Dispositivo_' + topicName.split('_')[1]
                 value = self.pop_message(topicName)   
                 data.append({'device_name': device_name, 'value': value})   
+        self.mutex.release()
         return data          
 
 
@@ -230,8 +195,8 @@ class Broker():
         Return.
             sucess (bool)               -> True se o processo for concluído sem erro 
         '''
-        topico = self._topics[TOPIC]
         self.mutex.acquire()
+        topico = self._topics[TOPIC]
         # Verifico se ip_device tem permissão de publicar no tópico
         if topico['publisher']== '' or topico['publisher'] == ip:
             # escrevo a mensagem
@@ -263,9 +228,9 @@ class Broker():
             value     (str|int)         -> Valor que será registrado no tópico
         '''
         # Obtenho o tópico
+        self.mutex.acquire()
         topico = self._topics[TOPIC]
         # Faço o registro do valor no tópico
-        self.mutex.acquire()
         topico['values'] =  value
         self.mutex.release()
 
@@ -277,10 +242,12 @@ class Broker():
         Return.
             message (int | str)         -> A mensagem no tópico ou None, se n tiver
         '''
-        # Encontro o tópico
-        topico = self._topics[TOPIC]
         self.mutex.acquire()
+        # Encontro o tópico
+        topico = self._topics.get(TOPIC, None)
         # Se não tiver nenhuma mensagem na fila
+        if topico == None:
+            return None
         if topico['values'] == None:
             self.mutex.release()
             return None
@@ -305,11 +272,13 @@ class Broker():
         if (is_registered == False) and (len(self._devices) < self._LIMIT_DISP_CONNCTED):
             device_name = 'Dispositivo_' + str(self._disp_num) # Dispositivo_4
             device = {"device_name": device_name, "ip": ip, "tcp_connection": conexao}
+            self.mutex.acquire()
             self._devices.append(device)
             ## Ao registrar, devo criar os tópicos associados ao dispositivo
             self.create_topics_for_new_device(str(self._disp_num), device)
             # Incremento o numero do proximo dispositivo
             self._disp_num = self._disp_num + 1
+            self.mutex.release()
             return True
         # Se já está registrado, encerro a conexão da nova tentativa
         else:    
@@ -324,19 +293,24 @@ class Broker():
         '''
         # Cria o tópico de dados do dispositivo
         topicNameData = 'data_' + num_device
+        self.mutex.acquire()
         self._topics[topicNameData] = {'publisher': device['ip'], 'subscribe': '', 'values': None}
         # Cria o tópico de comandos do dispositivo
         topicNameCommand = 'command_' + num_device
         self._topics[topicNameCommand] = {'publisher': '', 'subscribe':  device['ip'], 'values': None}
+        self.mutex.release()
 
 
     def _is_ip_device_registered(self, ip: str) -> bool:
         ''' Função que informa se o ip já está registrado na estrutura.
         (USADO PARA REGISTRAR O DEVICE)
         '''
+        self.mutex.acquire()
         for dispositivo in self._devices:
             if dispositivo["ip"] == ip:
+                self.mutex.release()
                 return True
+        self.mutex.release()
         return False
     
     def delete_device(self, ip: str):
@@ -344,6 +318,7 @@ class Broker():
         device_name = self.get_device_name_by_ip(ip)
         device_num = device_name.split('_')[1]
         ## Deleta o dispositivo da lista de devices
+        self.mutex.acquire()
         for device in self._devices:
             # Verifica se o dispositivo para excluir está presente na lista
             if device['ip'] == ip:
@@ -356,16 +331,8 @@ class Broker():
         # Deleta o tópico de dados
         topic_name = 'data_' + device_num
         del self._topics[topic_name]
+        self.mutex.release()
 
-  
-#### ============ BLOCO ============ ####    ??????????????????????????
-    def get_topic_to_ip(self, ip: str):
-        # Aqui eu pego o nome do device
-        device = self._obter_dispositivo_por_ip(ip)
-        num = device['device_name'].split('_')[1] # Estou pegando o num dele
-        topic = 'dados_'+str(num)
-        return topic
-        # Aqui eu descubro o tópico dele
 
 #### ============ BLOCO DE METODOS PARA TERCEIROS ============ ####    
     def get_registered_devices(self) -> list:
