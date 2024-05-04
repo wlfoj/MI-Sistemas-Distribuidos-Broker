@@ -8,9 +8,7 @@ WORKDIR /app
 COPY . /app
 
 # Instale as dependências Python
-RUN pip install cryptography==40.0.2
-
-# Exponha a porta que a aplicação irá escutar (se necessário)
+RUN pip install -r requirements.txt
 
 # Comando para executar a aplicação
 # CMD ["python", "main.py"]

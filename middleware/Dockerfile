@@ -8,8 +8,8 @@ WORKDIR /app
 COPY . /app
 
 # Instale as dependências Python
-RUN pip install Flask cryptography==40.0.2
-
+#RUN pip install Flask cryptography==40.0.2 Flask-Caching
+RUN pip install -r requirements.txt
 # Exponha a porta que a aplicação irá escutar (se necessário)
 # Porta da API Restfull
 EXPOSE 5005 
