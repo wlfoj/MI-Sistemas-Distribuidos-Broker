@@ -23,11 +23,8 @@ def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker, decr
             logging.info(f'TCP LISTEN CONN - mensagem para validar a conexão recebida de {cliente[0]}')
             # O try existe para o caso de dar algum erro no decriptar
             try:
-                # Decodifica a mensagem
-                mensagem_descriptografado = decrypt.decrypt(dados_recebidos)
-                # # Converte a mensagem de bytes para string
-                mensagem_string = mensagem_descriptografado.decode('utf-8')
-                mensagem_json_dict = json.loads(mensagem_string)
+                # decodifica
+                mensagem_json_dict = Utils.decrypt(decrypt, dados_recebidos)
                 # ============ Valido a conexão ============= #
                 if mensagem_json_dict['key'] == conf['key_conn']:
                     # Registra o cliente no broker
@@ -93,7 +90,7 @@ def thread_send_message(broker: Broker, encrypt: Fernet):
 
 
 
-def thread_check_conn_health(broker: Broker):
+def thread_check_conn_health(broker: Broker, encrypt: Fernet):
     '''Thread para verificar se uma conexão está ativa e destruir ela se não estiver'''
     logging.info(f'TCP HEALTH CONN - Thread para verificar a saúde das conexões iniciada')
     #{"device_name":"", "ip": '', "tcp_connection": None}
