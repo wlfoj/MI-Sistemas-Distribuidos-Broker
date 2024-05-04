@@ -1,6 +1,5 @@
 from config import conf
 from Device import Sensor
-from Utils import Utils
 #
 import socket
 import threading
@@ -20,7 +19,7 @@ from myTcpSet import receiverCommandTcp, try_connect_to_broker
 
 
 ## ====================== INICIALIZADOR DO DISPOSITIVO ====================== ##
-dispositivo = Sensor("Meu dispositivo", 25, 'F')
+dispositivo = Sensor("Meu dispositivo", 25, conf['unit_measurement'])
 fernet = Fernet(conf['key_crypt']) 
 ###### ====================== BLOCO DE CRIAÇÃO DOS SOCKETS ====================== ######
 socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

@@ -105,7 +105,7 @@ if __name__ == '__main__':
     thread_udp = threading.Thread(target=thread_udp_receiver, args=[udp, broker, fernet])
     thread_listen_tcp = threading.Thread(target=thread_listen_conections_tcp, args=[tcp, broker, fernet])
     thread_send_tcp = threading.Thread(target=thread_send_message, args=[broker, fernet])
-    thread_health_tcp = threading.Thread(target=thread_check_conn_health, args=[broker])
+    thread_health_tcp = threading.Thread(target=thread_check_conn_health, args=[broker, fernet])
     ## Dá start nas threads 
     thread_listen_tcp.start()
     thread_udp.start()
