@@ -20,6 +20,7 @@ def senderDataUdp(device: Sensor, socket: socket.socket, encrypt: Fernet):
         if device.get_status() == Status.On:
             # Lê os dados da estrutura
             data = device.get_data()
+            data = str(data) + ' ' + device.get_unidade()
             # Monta a estrutura de envio
             json_data = {
                 "data": data,
@@ -31,5 +32,4 @@ def senderDataUdp(device: Sensor, socket: socket.socket, encrypt: Fernet):
             logging.info(f'UDP - Dado enviado {json_data} para BROKER')
             time.sleep(1.5)
     socket.close()
-
 

@@ -13,10 +13,14 @@ class Sensor:
     _data = 0 # Dado que o sensor está lendo
     _status = Status.Off # Se estiver ligado será True
 
-    def __init__(self, nome, dado_inicial):
+    def __init__(self, nome, dado_inicial, unidade):
         self._nome = nome
         self._data = dado_inicial
+        self._unidade = unidade
 
+    def get_unidade(self):
+        return self._unidade
+    
     def get_data(self):
         '''Função que retorna o dado da leitura atual do dispositivo. A cada leitura o dado é atualizado aleatóriamente em torno do ponto anterior.
         Return.
@@ -25,7 +29,7 @@ class Sensor:
         f = random.randint(-100, 100)/100
         self._data = self._data + f
         # 
-        return self._data
+        return round(self._data, 2)
     
     def set_status(self, new_status: Status):
         # Se tentei pausar, mas a aplicação não estava ligada

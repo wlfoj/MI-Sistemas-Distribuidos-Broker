@@ -20,13 +20,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 ## ====================== INICIALIZADOR DO DISPOSITIVO ====================== ##
-dispositivo = Sensor("Meu dispositivo", 25)
+dispositivo = Sensor("Meu dispositivo", 25, 'F')
 fernet = Fernet(conf['key_crypt']) 
 ###### ====================== BLOCO DE CRIAÇÃO DOS SOCKETS ====================== ######
 socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-print("vou começar")
 ### Tenta a conexão TCP ###
 conn = False
 while conn == False:
