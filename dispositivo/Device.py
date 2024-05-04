@@ -16,10 +16,10 @@ class Sensor:
     def __init__(self, nome, dado_inicial, unidade):
         self._nome = nome
         self._data = dado_inicial
-        self._unidade = unidade
+        self._unit_measurement = unidade
 
-    def get_unidade(self):
-        return self._unidade
+    def get_unit_measurement(self):
+        return self._unit_measurement
     
     def get_data(self):
         '''Função que retorna o dado da leitura atual do dispositivo. A cada leitura o dado é atualizado aleatóriamente em torno do ponto anterior.

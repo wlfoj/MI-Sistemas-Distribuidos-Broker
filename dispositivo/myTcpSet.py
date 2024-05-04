@@ -7,8 +7,8 @@ from cryptography.fernet import Fernet
 import json
 from config import conf
 
-import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# import logging
+# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def try_connect_to_broker(fernet: Fernet):
     '''Procedimento responsável pela conexão com o broker, realizo a conexão e envio um pacote via tcp com a chave de autenticação, caso
@@ -16,7 +16,7 @@ def try_connect_to_broker(fernet: Fernet):
     socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Faço a conexão
     socket_tcp.connect((conf['broker_host_ip'], conf['broker_host_port_tcp']))
-    logging.info(f'TCP CONN - Conexão realizada com BROKER')
+    # logging.info(f'TCP CONN - Conexão realizada com BROKER')
     ## 
     dado = {'key': conf['key_conn']}
     # Serializa o dicionário para JSON STRING(até dumps) em bytes (encode)
@@ -31,10 +31,10 @@ def try_connect_to_broker(fernet: Fernet):
     msg_decrypted = Utils.decrypt(fernet, data_received)
     # Caso o status mostre que não consegui ser cadastrado, encerro o programa
     if msg_decrypted['is_acc'] == False:
-        logging.critical(f'TCP CONN - Conexão recusada com BROKER')
+        # logging.critical(f'TCP CONN - Conexão recusada com BROKER')
         # sys.exit()
         return None
-    logging.info(f'TCP CONN - Conexão validada e aceita por BROKER')
+    # logging.info(f'TCP CONN - Conexão validada e aceita por BROKER')
     return socket_tcp
 
 def executor(device: Sensor , command: str):
@@ -58,7 +58,7 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket, decrypt: Fernet):
         Fico esperando o comando chegar. Ao chegar, analiso se possui o campo 'comando' e verifico qual ação tomar para cada comando.
         ********OBS. Como eu só me conecto com o broker, não preciso verificar a coerência da mensagem recebida.
     '''
-    logging.info(f'TCP - Thread ouvinte de comandos do Broker na porta TCP iniciada')
+    # logging.info(f'TCP - Thread ouvinte de comandos do Broker na porta TCP iniciada')
     conn = True
     while 1:
         # Fica aguardando um comando chegar via tcp
@@ -67,21 +67,22 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket, decrypt: Fernet):
             ## Verifico se o dado recebido é só um ping de verificação se a conexão existe
         except ConnectionResetError:
             socket.close()
-            logging.critical(f'TCP CONN - Conexão com BROKER foi perdida.')
+            # logging.critical(f'TCP CONN - Conexão com BROKER foi perdida.')
             conn = False
             while conn == False:
-                logging.info(f'TCP CONN - Iniciando nova tentativa de conexão com o BROKER.')
+                # logging.info(f'TCP CONN - Iniciando nova tentativa de conexão com o BROKER.')
                 try:
                     socket = try_connect_to_broker(decrypt)
                     conn = True
                 except Exception as e:
-                    logging.critical(f'TCP CONN - Não foi possível estabelecer conexão com broker.')
+                    pass
+                    # logging.critical(f'TCP CONN - Não foi possível estabelecer conexão com broker.')
             continue
         # Se recbi algum dado
         if data_received:
             # Etapa de tirar criptografia
             msg_decrypted = Utils.decrypt(decrypt, data_received)
-            logging.info(f'TCP - Pacote recebido -> {msg_decrypted}')
+            # logging.info(f'TCP - Pacote recebido -> {msg_decrypted}')
             # Faz validação
             command = msg_decrypted['command']
             # Executa a instrução

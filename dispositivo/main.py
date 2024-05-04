@@ -12,8 +12,8 @@ from interface import mainMenu
 from myUdpSet import senderDataUdp
 from myTcpSet import receiverCommandTcp, try_connect_to_broker
 
-import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# import logging
+# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 ## ====================== BLOCO DE FUNÇÕES AUXILIARES ====================== ##
    
@@ -30,7 +30,7 @@ socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 conn = False
 while conn == False:
     try:
-        logging.critical(f'TCP - Iniciando a tentativa de conexão com o Broker.')
+        # logging.critical(f'TCP - Iniciando a tentativa de conexão com o Broker.')
         socket_tcp = try_connect_to_broker(fernet)
         if socket_tcp == None:
             sys.exit() # Se o token for inválido ou etc, já encerro o device
@@ -38,11 +38,10 @@ while conn == False:
     except:
         conn = False
         socket_tcp.close() # Fecho a conexão para tentar reiniciar
-        logging.critical(f'TCP - Não foi possível estabelecer conexão com o Broker.')
+        # logging.critical(f'TCP - Não foi possível estabelecer conexão com o Broker.')
 
 
 ###### =========== BLOCO DE CRIAÇÃO DA THREADS =========== ######
-print("Estou criando threads")
 # == Controle de quando enviar dados via UDP == ##
 thread_udp = threading.Thread(target=senderDataUdp, args=[dispositivo, socket_udp, fernet])
 thread_udp.daemon = True
