@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 from Utils import Utils
 
-def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker, decrypt: Fernet):
+def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker):
     '''Esta função atua apenas ouvindo conexões e registrando no broker'''
     logging.info(f'TCP LISTEN CONN - Thread para receber conexões na porta tcp iniciada')
     while True:
@@ -24,7 +24,7 @@ def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker, decr
             # O try existe para o caso de dar algum erro no decriptar
             try:
                 # decodifica
-                mensagem_json_dict = Utils.decrypt(decrypt, dados_recebidos)
+                mensagem_json_dict = Utils.decrypt(dados_recebidos)
                 # ============ Valido a conexão ============= #
                 if mensagem_json_dict['key'] == conf['key_conn']:
                     # Registra o cliente no broker
@@ -35,7 +35,7 @@ def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker, decr
                                             # Monta o obj
                         obj_to_send = {'is_acc': True}
                         # Criptografa
-                        obj_encrypted = Utils.encrypt(decrypt, obj_to_send)
+                        obj_encrypted = Utils.encrypt(obj_to_send)
                         # Envia
                         conexao.send(obj_encrypted)
                         #print(broker._dispositivos)
@@ -45,7 +45,7 @@ def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker, decr
                 else:
                     obj_to_send = {'is_acc': False}
                     # Criptografa
-                    obj_encrypted = Utils.encrypt(decrypt, obj_to_send)
+                    obj_encrypted = Utils.encrypt(obj_to_send)
                     # Envia
                     conexao.send(obj_encrypted)
                     logging.warning(f'TCP LISTEN CONN - Conexão de {cliente[0]} rejeitada, pois a chave está incorreta')
@@ -53,7 +53,7 @@ def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker, decr
             except:
                 obj_to_send = {'is_acc': False}
                 # Criptografa
-                obj_encrypted = Utils.encrypt(decrypt, obj_to_send)
+                obj_encrypted = Utils.encrypt(obj_to_send)
                 # Envia
                 conexao.send(obj_encrypted)
                 logging.warning(f'TCP LISTEN CONN - Conexão de {cliente[0]} rejeitada, pois a chave está incorreta')
@@ -61,7 +61,7 @@ def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker, decr
  
 
 
-def thread_send_message(broker: Broker, encrypt: Fernet):
+def thread_send_message(broker: Broker):
     '''Função responsável por repassar o comando no tópico para o respectivo dispositivo
     '''
     logging.info(f'TCP - Thread para enviar mensagens pela porta tcp iniciada')
@@ -79,7 +79,7 @@ def thread_send_message(broker: Broker, encrypt: Fernet):
                     # Monta o obj
                     obj_to_send = {'command': msg}
                     # Criptografa
-                    obj_encrypted = Utils.encrypt(encrypt, obj_to_send)
+                    obj_encrypted = Utils.encrypt(obj_to_send)
                     # Envia
                     info['conn'].send(obj_encrypted) # Envio a mensagem para a conexão correspondente
                 except ConnectionResetError:
@@ -90,7 +90,7 @@ def thread_send_message(broker: Broker, encrypt: Fernet):
 
 
 
-def thread_check_conn_health(broker: Broker, encrypt: Fernet):
+def thread_check_conn_health(broker: Broker):
     '''Thread para verificar se uma conexão está ativa e destruir ela se não estiver'''
     logging.info(f'TCP HEALTH CONN - Thread para verificar a saúde das conexões iniciada')
     #{"device_name":"", "ip": '', "tcp_connection": None}

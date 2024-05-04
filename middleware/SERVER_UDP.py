@@ -6,7 +6,7 @@ from Broker import Broker
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def thread_udp_receiver(udp_socket: socket.socket, broker: Broker, decrypt: Fernet):
+def thread_udp_receiver(udp_socket: socket.socket, broker: Broker):
     '''Esta função atua apenas recebendo os envios UDP e publicando no broker no tópico permitido para determinado IPv4'''
     # Loop infinito para receber mensagens
     logging.info(f'UDP - Thread para receber dados via porta udp iniciada')
@@ -14,7 +14,7 @@ def thread_udp_receiver(udp_socket: socket.socket, broker: Broker, decrypt: Fern
         # Recebe uma mensagem e o endereço do cliente
         mensagem, client_addr = udp_socket.recvfrom(1024)
         # # Decodifica a mensagem
-        mensagem_json_dict = Utils.decrypt(decrypt, mensagem)
+        mensagem_json_dict = Utils.decrypt(mensagem)
         logging.info(f'UDP - Mensagem de {client_addr[0]} recebida na porta udp -> {mensagem_json_dict}')
 
         #  Obtenho o tópico em que o ip pode publicar

@@ -3,9 +3,7 @@ from Device import Sensor
 #
 import socket
 import threading
-import json
 import sys
-from cryptography.fernet import Fernet
 # Funções para threads
 from interface import mainMenu
 from myUdpSet import senderDataUdp
@@ -20,7 +18,6 @@ from myTcpSet import receiverCommandTcp, try_connect_to_broker
 
 ## ====================== INICIALIZADOR DO DISPOSITIVO ====================== ##
 dispositivo = Sensor("Meu dispositivo", 25, conf['unit_measurement'])
-fernet = Fernet(conf['key_crypt']) 
 ###### ====================== BLOCO DE CRIAÇÃO DOS SOCKETS ====================== ######
 socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -30,7 +27,7 @@ conn = False
 while conn == False:
     try:
         # logging.critical(f'TCP - Iniciando a tentativa de conexão com o Broker.')
-        socket_tcp = try_connect_to_broker(fernet)
+        socket_tcp = try_connect_to_broker()
         if socket_tcp == None:
             sys.exit() # Se o token for inválido ou etc, já encerro o device
         conn = True # Mudo a variavel de controle do loop, pois se consegui me conectar já posso prosseguir.
@@ -42,10 +39,10 @@ while conn == False:
 
 ###### =========== BLOCO DE CRIAÇÃO DA THREADS =========== ######
 # == Controle de quando enviar dados via UDP == ##
-thread_udp = threading.Thread(target=senderDataUdp, args=[dispositivo, socket_udp, fernet])
+thread_udp = threading.Thread(target=senderDataUdp, args=[dispositivo, socket_udp])
 thread_udp.daemon = True
 # == Controle para quando receber os comandos via TCP == ##
-thread_tcp = threading.Thread(target=receiverCommandTcp, args=[dispositivo, socket_tcp, fernet])
+thread_tcp = threading.Thread(target=receiverCommandTcp, args=[dispositivo, socket_tcp])
 thread_tcp.daemon = True
 ## == Inicia o controle do menu (interface do dispositivo) == ##
 thread_interface_manual = threading.Thread(target=mainMenu, args=[dispositivo])
