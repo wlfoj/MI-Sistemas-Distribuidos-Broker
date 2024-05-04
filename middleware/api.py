@@ -1,25 +1,34 @@
+# Imports referentes ao Flask 
 from flask import Flask, request, jsonify
-#from flask_caching import Cache
-
+from flask_caching import Cache
+# 
 import socket
 import threading
 from cryptography.fernet import Fernet
-
+# Imports referentes ao broker e ao de mensagens via TCP e UDP
 from SERVER_TCP import thread_listen_conections_tcp, thread_send_message, thread_check_conn_health
 from SERVER_UDP import thread_udp_receiver
-
 from config import conf
 from Broker import Broker
-
+#
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+## ======= Bloco para instânciação de objetos necessários ======= ##
 app = Flask(__name__)
-#cache = Cache(app, config={'CACHE_TYPE': 'simple'})  # Configuração básica de cache
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})  # Configuração básica de cache
 broker = Broker()
 fernet = Fernet(conf['key_decrypt']) 
 
-#### COLOCAR A REQUISIÇÃO NA FILA DA THREAD PROCESSADORA, Aí ELA DA POP LÀ E VAI EXECUTANDO. DEIXA OS CANAIS DE RECEBIMENTO LIVRES
+
+
+
+
+
+
+
+
+## ========== Bloco para os endpoints da API ========== ##
 @app.route('/pub/<string:topic>', methods=['POST'])
 def post_mensagem(topic: str):
     '''Publica a mensagem no topico'''
@@ -46,7 +55,7 @@ def hello():
     return 'HELLO WORLD'
 
 @app.route('/sub', methods=['GET'])
-#@cache.cached(timeout=2)  # Cache válido por 60 segundos
+@cache.cached(timeout=5)  # Cache válido por 5 segundos
 def get_mensagens():
     '''Pega mensagens de todos os tópicos'''
     # Aqui você pode implementar a lógica para ler as mensagens do tópico MQTT
@@ -56,6 +65,7 @@ def get_mensagens():
 
 # Rota para ler as mensagens de um dispositivo especifico
 @app.route('/sub/<string:topic>', methods=['GET'])
+@cache.cached(timeout=5)  # Cache válido por 5 segundos
 def get_mensagem(topic:str):
     '''Pega uma mensagem de um topico'''
     # Se não for um tópico permitido, já encerra e retorna o status
@@ -68,7 +78,7 @@ def get_mensagem(topic:str):
 
 
 @app.route('/device_names', methods=['GET'])
-#@cache.cached(timeout=2)  # Cache válido por 60 segundos
+@cache.cached(timeout=2)  # Cache válido por 5 segundos
 def get_devices():
     '''Obtem os nomes dos dispositivos cadastrados'''
     return jsonify(broker.get_registered_devices()), 200

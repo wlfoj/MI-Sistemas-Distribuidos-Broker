@@ -146,12 +146,12 @@ class Broker():
         Return.
             conn (socket.socket)      -> A conexão TCP dispositivo correspondente ao IPv4'''
         conn = None
-        self.mutex.acquire()
+        # self.mutex.acquire()
         for device in  self._devices:
             if device['ip'] == ip:
                 conn = device['tcp_connection']
                 break
-        self.mutex.release()
+        # self.mutex.release()
         return conn
 
 
