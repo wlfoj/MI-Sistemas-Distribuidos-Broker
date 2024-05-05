@@ -1,21 +1,37 @@
-docker pull wolivej/middleware_b_i:latest
-docker pull wolivej/device_i:latest
+# 0. Passo a passo para executar no LARSID
+É necessário que a Aplicação rode em um computador com [Python](https://www.python.org) 3.11, ou mais recente, instalado. É preciso que o computador tenha o Docker instalado, pois o Broker e os Devices serão executados por  meio de containers.
 
-
-# Execute device
-docker run -p 12345:12345 -p 12346:12346 -it wolivej/device_i
-# Execute broker
-docker run -p 12345:12345 -p 12346:12346 -p 5005:5005 -it wolivej/middleware_b_i
-
-
-# Fazendo a imagem no dockerHUB
-docker build -t wolivej/device_i:latest .
-docker push wolivej/device_i:latest
-
-
-docker build -t wolivej/middleware_b_i:latest .
-docker push wolivej/middleware_b_i:latest
-
+### 0.1 Faça pull das imagens utilizadas
+Abra o terminal e execute os comandos abaixo para baixar as imagens do Broker e do Device no Doocker Hub.
+```
+$ docker pull wolivej/middleware_b_i:latest
+$ docker pull wolivej/device_i:latest
+```
+### 0.2 Iniciando o Broker
+Para que tudo funcione da melhor forma, é necessário iniciar o serviço do Broker antes dos demais. Sendo assim, execute o seguinte comando em um determinado computador.
+```
+$ docker run --network=host -it -p 5005:5005 wolivej/middleware_b_i:latest
+```
+Anote o endereço IP do computador em que o Broker está rodando.
+### 0.3 Iniciando os Devices
+Em um novo terminal, execute o comando, logo abaixo, para criar o serviço do dispositivo e substitua 'ip_do_broker' pelo IP anotado no passo anterior. A variável de ambiente UNIT_MEASUREMENT pode representar qualquer unidade de medida, Coloque uma unidade para cada Device instânciado.
+```
+$ docker run --network=host -it -e BROKER_IP=ip_do_broker -e UNIT_MEASUREMENT=mV wolivej/device_i:latest
+```
+Com o container já iniciado, é preciso dar o start no processo do Device. Execute o comando abaixo no container iniciado no código acima.
+```
+$ python main.py
+```
+Repita o processo para cada dispositivo que você queira criar.
+### 0.3 Iniciando a Aplicação
+Por fim, devemos iniciar a aplicação gráfica que irá consumir os dados do Broker. Execute o comando abaixo, substituindo 'ip_do_broker' pelo IP anotado no passo **0.2**.
+```
+$ python main.py ip_do_broker
+```
+Como exemplo:
+```
+$ python main.py 127.0.0.1
+```
 
 
 

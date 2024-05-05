@@ -1,15 +1,18 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import sys
 
 import requests
 
+# Obtém os argumentos da linha de comando
+argument = sys.argv
 ## =============================== BLOCO DE INICIALIZAÇÃO DE VARIAVEIS =============================== ##
-url_api = "http://127.0.0.1:5005"
-opcoes_comando = ["Ligar", "Desligar", "Pausar", "Continuar"]
-lista_dispositivos = []
+url_api = "http://"+argument[1] +":5005"
+command_options = ["Ligar", "Desligar", "Pausar", "Continuar"]
+devices_list = []
 ## =============================== BLOCO DE FUNÇÕES PARA INICIALIZAÇÃO =============================== ##
 def get_devices():#ok
-    '''Função que obtem os dispositivos conectados/permitidos no broker. Deve ser executa ao iniciar a aplicação, ou de tempos em tempos.
+    '''Função que obtem os dispositivos conectados/permitidos no broker. Deve ser executa ao iniciar a aplicação, e de tempos em tempos.
     Return.
         response (list) -> Lista com os identificadores de cada dispositivo
             ex: response = ['Dispositivo 1', 'Dispositivo 2']
@@ -18,42 +21,33 @@ def get_devices():#ok
     # URL do endpoint que você deseja acessar
     url = url_api+"/device_names"
     # Realiza a requisição GET
-    erro = False
     try:
         response = requests.get(url).json()
     except:
-        erro = True
+        pass
 
-    # if (not erro):
-    #     messagebox.showinfo("Sucesso", "A solicitação foi enviada com sucesso!")
-    # else:
-    #     messagebox.showinfo("Erro", "A solicitação não pode ser enviada")
     return response
 
 
-def enviar_comando():#ok
+def send_command():#ok
     '''Função para enviar o comando, via http, para api do broker. Em caso de envio e confirmação do broker, exibe uma mensagem de sucesso
     '''
     ## Obtendo os valores nos inputs
-    comando_selecionado = tipo_comando_var.get()
-    dispositivo_selecionado = dispositivo_var.get()
-    ###
-    if (comando_selecionado == "") and (dispositivo_selecionado == ""):
-        messagebox.showinfo("Erro", "Selecione o comando e o dispositivo presente nas opções")
-        return 0
+    selected_command = command_input.get()
+    selected_device = device_input.get()
     ## Gerando o nome do topico a partir do número do dispositivo
     topic_name = "command_"
-    topic_name = topic_name + dispositivo_selecionado.split('_')[1] # Pega o número do dispositivo
+    topic_name = topic_name + selected_device.split('_')[1] # Pega o número do dispositivo
     url = url_api+"/pub/"+ topic_name
-    # Aqui você pode adicionar lógica para enviar o comando para o dispositivo selecionado
     # Monta os dados
-    dados = {'message': comando_selecionado, 'topico': topic_name,'remetente': 'aplicação'}
+    dados = {'message': selected_command, 'topico': topic_name, 'remetente': 'aplicação'}
     erro = False
+    # faz envio
     try:
         response = requests.post(url, json=dados)
     except:
         erro = True
-
+    # Exibe uma mensagem de erro ou sucesso na tela
     if (response.status_code in [200, 201]) and (not erro):
         messagebox.showinfo("Sucesso", "A solicitação foi enviada com sucesso!")
     else:
@@ -62,59 +56,50 @@ def enviar_comando():#ok
 
 
 
-# Simulação de dados recebidos via TCP
-dados_recebidos = [
-    ("Dado 1", "Valor 1"),
-    ("Dado 2", "Valor 2"),
-    ("Dado 3", "Valor 3")
-]
-
-lista_dispositivos = get_devices()
-
-
+#
+devices_list = get_devices()
 ## =============================== BLOCO PARA CRIAR A INTERFACE =============================== ##
 # Criando a janela principal
 root = tk.Tk()
 root.title("Aplicação Cliente")
 
 # Frame para a seção de envio de comando
-frame_envio_comando = ttk.LabelFrame(root, text="Enviar Comando")
-frame_envio_comando.pack(padx=10, pady=10, fill="both", expand=True)
+frame_send_command = ttk.LabelFrame(root, text="Enviar Comando")
+frame_send_command.pack(padx=10, pady=10, fill="both", expand=True)
 
 # Variáveis para armazenar as opções selecionadas
-tipo_comando_var = tk.StringVar()
-dispositivo_var = tk.StringVar()
+command_input = tk.StringVar()
+device_input = tk.StringVar()
 
 # Dropdown para selecionar o tipo de comando
-tipo_comando_label = ttk.Label(frame_envio_comando, text="Tipo de Comando:")
-tipo_comando_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
-tipo_comando_dropdown = ttk.Combobox(frame_envio_comando, textvariable=tipo_comando_var, values=opcoes_comando, state='readonly')
-tipo_comando_dropdown.grid(row=0, column=1, padx=5, pady=5)
+command_label = ttk.Label(frame_send_command, text="Tipo de Comando:")
+command_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
+command_type_dropdown = ttk.Combobox(frame_send_command, textvariable=command_input, values=command_options, state='readonly')
+command_type_dropdown.grid(row=0, column=1, padx=5, pady=5)
 
 # Dropdown para selecionar o dispositivo
-dispositivo_label = ttk.Label(frame_envio_comando, text="Dispositivo:")
-dispositivo_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
-dispositivo_dropdown = ttk.Combobox(frame_envio_comando, textvariable=dispositivo_var, values= lista_dispositivos, state='readonly')
-dispositivo_dropdown.grid(row=1, column=1, padx=5, pady=5)
+device_label = ttk.Label(frame_send_command, text="Dispositivo:")
+device_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+device_dropdown = ttk.Combobox(frame_send_command, textvariable=device_input, values= devices_list, state='readonly')
+device_dropdown.grid(row=1, column=1, padx=5, pady=5)
 
 # Botão para enviar o comando
-enviar_botao = ttk.Button(frame_envio_comando, text="Enviar Comando", command=enviar_comando)
-enviar_botao.grid(row=2, columnspan=2, padx=5, pady=5)
+send_button = ttk.Button(frame_send_command, text="Enviar Comando", command=send_command)
+send_button.grid(row=2, columnspan=2, padx=5, pady=5)
 
 # Frame para a seção de dados recebidos
-frame_dados_recebidos = ttk.LabelFrame(root, text="Dados Recebidos")
-frame_dados_recebidos.pack(padx=10, pady=10, fill="both", expand=True)
+frame_table_data_received = ttk.LabelFrame(root, text="Dados Recebidos")
+frame_table_data_received.pack(padx=10, pady=10, fill="both", expand=True)
 
 # Tabela para exibir os dados recebidos
-colunas = ("Dispositivo", "Valor Leitura")
-tabela = ttk.Treeview(frame_dados_recebidos, columns=colunas, show="headings")
-for col in colunas:
-    tabela.heading(col, text=col)
-tabela.pack(fill="both", expand=True)
+table_columns = ("Dispositivo", "Valor Leitura")
+table = ttk.Treeview(frame_table_data_received, columns=table_columns, show="headings")
+for col in table_columns:
+    table.heading(col, text=col)
+table.pack(fill="both", expand=True)
 
 # Função para atualizar a tabela com os dados recebidos
-def atualizar_tabela(dados_recebidos):
-    print("Executei o loop")
+def update_table():
     response = None
     # URL do endpoint que você deseja acessar
     url = url_api+"/sub"
@@ -125,29 +110,29 @@ def atualizar_tabela(dados_recebidos):
     except:
         erro = True
     if response:
-        for row in tabela.get_children():
-            tabela.delete(row)
+        for row in table.get_children():
+            table.delete(row)
         for dado in response:
             aux = (dado['device_name'], dado['value'])
-            tabela.insert("", "end", values=aux)
+            table.insert("", "end", values=aux)
 
-def atualizar_lista_dispositivos():
+def update_devices_list():
     '''Atualiza a lista de dispositivos na interface gráfica.'''
-    global lista_dispositivos
-    lista_dispositivos = get_devices()
-    dispositivo_dropdown['values'] = lista_dispositivos
+    global devices_list
+    devices_list = get_devices()
+    device_dropdown['values'] = devices_list
 
 
-def atualizar_periodicamente():
+def update_periodically():
     # Atualiza a tabela de (NOME_DISP, VALOR LIDO)
-    atualizar_tabela(dados_recebidos)
+    update_table()
     # Atualiza a lista de dispositivos
-    atualizar_lista_dispositivos()
+    update_devices_list()
     # faz a atualização a cada 5s
-    root.after(5000, atualizar_periodicamente)
+    root.after(2000, update_periodically)
 
 # Chamando a função para atualizar periodicamente
-atualizar_periodicamente()
+update_periodically()
 
 # Rodando a aplicação
 root.mainloop()
