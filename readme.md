@@ -24,7 +24,7 @@ $ python main.py
 ```
 Repita o processo para cada dispositivo que você queira criar.
 ### 0.3 Iniciando a Aplicação
-Por fim, devemos iniciar a aplicação gráfica que irá consumir os dados do Broker. Execute o comando abaixo, substituindo 'ip_do_broker' pelo IP anotado no passo **0.2**.
+Por fim, devemos iniciar a aplicação gráfica que irá consumir os dados do Broker. Baixe o arquivo [main.py](https://github.com/wlfoj/concorrencia-conectividade/blob/main/aplicacaoGF/main.py) e execute o comando abaixo, substituindo 'ip_do_broker' pelo IP anotado no passo **0.2**.
 ```
 $ python main.py ip_do_broker
 ```
