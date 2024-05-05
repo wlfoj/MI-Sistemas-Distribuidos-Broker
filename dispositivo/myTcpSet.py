@@ -72,6 +72,13 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket):
                 # logging.info(f'TCP - Pacote recebido -> {msg_decrypted}')
                 # Faz validação
                 command = msg_decrypted['command']
+                if command == 'ping':
+                    obj_to_send = {'command': 'ping'}
+                    # Criptografa
+                    obj_encrypted = Utils.encrypt(obj_to_send)
+                    # Envia
+                    socket.send(obj_encrypted) # Envio a mensagem para a conexão correspondente
+                    continue
                 # Executa a instrução
                 executor(device, command)
             except:

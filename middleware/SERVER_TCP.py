@@ -106,7 +106,11 @@ def thread_check_conn_health(broker: Broker):
                 # Tenta enviar uma especie de ping que será desconsiderado peo dispositivo, apenas para verificar se ainda está conectado
                 device['tcp_connection'].send(msg_crypt)
                 # E espero ter qualquer resposta
-                
+                response = device['tcp_connection'].recv(1024)
+                # Se n  tiver, é pq retiraram o cabo, se der alguma exceção também
+                if not response:
+                    broker.delete_device(device['ip'])
+                    logging.warning(f"TCP HEALTH CONN - O dispositivo {device['ip']} foi desconectado e por isso removido do broker") 
             except:
                 # Se ocorrer um erro no envio, estou supondo que a conexão não está mais ativa
                 broker.delete_device(device['ip'])
