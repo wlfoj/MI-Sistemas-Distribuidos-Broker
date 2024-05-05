@@ -7,7 +7,7 @@ import sys
 # Funções para threads
 from interface import mainMenu
 from myUdpSet import senderDataUdp
-from myTcpSet import receiverCommandTcp, try_connect_to_broker
+from myTcpSet import receiverCommandTcp, create_connect_to_broker
 
 # import logging
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -22,12 +22,12 @@ dispositivo = Sensor("Meu dispositivo", 25, conf['unit_measurement'])
 socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-### Tenta a conexão TCP ###
+### =========== Tenta a conexão TCP =========== ###
 conn = False
 while conn == False:
     try:
         # logging.critical(f'TCP - Iniciando a tentativa de conexão com o Broker.')
-        socket_tcp = try_connect_to_broker()
+        socket_tcp = create_connect_to_broker()
         if socket_tcp == None:
             sys.exit() # Se o token for inválido ou etc, já encerro o device
         conn = True # Mudo a variavel de controle do loop, pois se consegui me conectar já posso prosseguir.
@@ -35,6 +35,8 @@ while conn == False:
         conn = False
         socket_tcp.close() # Fecho a conexão para tentar reiniciar
         # logging.critical(f'TCP - Não foi possível estabelecer conexão com o Broker.')
+dispositivo.set_is_conn_with_broker(True)
+
 
 ###### =========== BLOCO DE CRIAÇÃO DA THREADS =========== ######
 # == Controle de quando enviar dados via UDP == ##

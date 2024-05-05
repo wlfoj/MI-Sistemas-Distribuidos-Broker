@@ -27,6 +27,8 @@ def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker):
                 mensagem_json_dict = Utils.decrypt(dados_recebidos)
                 # ============ Valido a conexão ============= #
                 if mensagem_json_dict['key'] == conf['key_conn']:
+                    # Coloco um timeout aqui para ajudar a 
+                    conexao.settimeout(2)
                     # Registra o cliente no broker
                     confirm = broker.register_device(conexao, cliente[0])
                     if confirm:
@@ -103,7 +105,9 @@ def thread_check_conn_health(broker: Broker):
                 logging.info(f"TCP HEALTH CONN - Testando a conexão do device {device['ip']}")
                 # Tenta enviar uma especie de ping que será desconsiderado peo dispositivo, apenas para verificar se ainda está conectado
                 device['tcp_connection'].send(msg_crypt)
-            except OSError:
+                # E espero ter qualquer resposta
+                
+            except:
                 # Se ocorrer um erro no envio, estou supondo que a conexão não está mais ativa
                 broker.delete_device(device['ip'])
                 logging.warning(f"TCP HEALTH CONN - O dispositivo {device['ip']} foi desconectado e por isso removido do broker") 

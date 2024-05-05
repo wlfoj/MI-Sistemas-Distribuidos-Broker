@@ -16,8 +16,8 @@ def senderDataUdp(device: Sensor, socket: socket.socket):
     '''
     # logging.info(f'UDP - Thread para enviar de dados para o Broker pela porta UDP iniciada')
     while 1:
-        # Só faz envio UDP se o dispositivo estiver ligado
-        if device.get_status() == Status.On:
+        # Só faz envio UDP se o dispositivo estiver ligado e estiver conectado com o broker
+        if (device.get_status() == Status.On) and (device.get_is_conn_with_broker()):
             # Lê os dados da estrutura
             data = device.get_data()
             data = str(data) + ' ' + device.get_unit_measurement()

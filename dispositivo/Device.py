@@ -17,7 +17,14 @@ class Sensor:
         self._nome = nome
         self._data = dado_inicial
         self._unit_measurement = unidade
+        self.is_conn_with_broker = False
 
+    def get_is_conn_with_broker(self):
+        return self.is_conn_with_broker
+    
+    def set_is_conn_with_broker(self, is_ok):
+        self.is_conn_with_broker = is_ok
+        
     def get_unit_measurement(self):
         return self._unit_measurement
     

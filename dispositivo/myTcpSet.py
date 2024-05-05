@@ -7,7 +7,7 @@ from config import conf
 # import logging
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def try_connect_to_broker():
+def create_connect_to_broker():
     '''Procedimento responsável pela conexão com o broker, realizo a conexão e envio um pacote via tcp com a chave de autenticação, caso
     seja recusada, encerro o programa'''
     socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -55,7 +55,6 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket):
         ********OBS. Como eu só me conecto com o broker, não preciso verificar a coerência da mensagem recebida.
     '''
     # logging.info(f'TCP - Thread ouvinte de comandos do Broker na porta TCP iniciada')
-    conn = True
     while 1:
         # Fica aguardando um comando chegar via tcp
         try:
@@ -63,16 +62,7 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket):
             ## Verifico se o dado recebido é só um ping de verificação se a conexão existe
         except ConnectionResetError:
             socket.close()
-            # logging.critical(f'TCP CONN - Conexão com BROKER foi perdida.')
-            conn = False
-            while conn == False:
-                print(f'TCP CONN - Iniciando nova tentativa de conexão com o BROKER.')
-                try:
-                    socket = try_connect_to_broker()
-                    conn = True
-                except Exception as e:
-                    pass
-                    # logging.critical(f'TCP CONN - Não foi possível estabelecer conexão com broker.')
+            socket = try_conn_to_broker(device)
             continue
         # Se recbi algum dado
         if data_received:
@@ -90,13 +80,20 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket):
         else:
             print("deconectei o tcp do broker")
             socket.close()
-            conn = False
-            while conn == False:
-                print(f'TCP CONN - Iniciando nova tentativa de conexão com o BROKER.')
-                try:
-                    socket = try_connect_to_broker()
-                    conn = True
-                except Exception as e:
-                    pass
-            print("broker reconetado")
+            socket = try_conn_to_broker(device)
+            print("Fiz a nova conexão")
     socket.close()
+
+
+def try_conn_to_broker(device: Sensor) -> socket.socket:
+    conn = False
+    device.set_is_conn_with_broker(False)
+    # Fico preso no loop até conseguir criar uma nova conexão
+    while conn == False:
+        try:
+            socket = create_connect_to_broker()
+            conn = True
+            device.set_is_conn_with_broker(True)
+        except Exception as e:
+            pass
+    return socket
