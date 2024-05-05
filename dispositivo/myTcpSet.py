@@ -24,6 +24,7 @@ def try_connect_to_broker():
     data_received = socket_tcp.recv(1024)
     #InvalidToken
     msg_decrypted = Utils.decrypt(data_received)
+    # print("recebi na tentaticav de conn", msg_decrypted)
     # Caso o status mostre que não consegui ser cadastrado, encerro o programa
     if msg_decrypted['is_acc'] == False:
         # logging.critical(f'TCP CONN - Conexão recusada com BROKER')
@@ -65,7 +66,7 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket):
             # logging.critical(f'TCP CONN - Conexão com BROKER foi perdida.')
             conn = False
             while conn == False:
-                # logging.info(f'TCP CONN - Iniciando nova tentativa de conexão com o BROKER.')
+                print(f'TCP CONN - Iniciando nova tentativa de conexão com o BROKER.')
                 try:
                     socket = try_connect_to_broker()
                     conn = True
@@ -76,10 +77,26 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket):
         # Se recbi algum dado
         if data_received:
             # Etapa de tirar criptografia
-            msg_decrypted = Utils.decrypt(data_received)
-            # logging.info(f'TCP - Pacote recebido -> {msg_decrypted}')
-            # Faz validação
-            command = msg_decrypted['command']
-            # Executa a instrução
-            executor(device, command)
+            try:
+                msg_decrypted = Utils.decrypt(data_received)
+                # logging.info(f'TCP - Pacote recebido -> {msg_decrypted}')
+                # Faz validação
+                command = msg_decrypted['command']
+                # Executa a instrução
+                executor(device, command)
+            except:
+                # Se cair algum comando defeituoso eu ignoro
+                pass
+        else:
+            print("deconectei o tcp do broker")
+            socket.close()
+            conn = False
+            while conn == False:
+                print(f'TCP CONN - Iniciando nova tentativa de conexão com o BROKER.')
+                try:
+                    socket = try_connect_to_broker()
+                    conn = True
+                except Exception as e:
+                    pass
+            print("broker reconetado")
     socket.close()

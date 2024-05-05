@@ -1,7 +1,7 @@
 import socket
 from cryptography.fernet import Fernet
 from Broker import Broker
-import json
+import time
 from config import conf
 
 import logging
@@ -95,10 +95,14 @@ def thread_check_conn_health(broker: Broker):
     logging.info(f'TCP HEALTH CONN - Thread para verificar a saúde das conexões iniciada')
     #{"device_name":"", "ip": '', "tcp_connection": None}
     while True:
+        time.sleep(1) # Repito o processo de 1 em 1 segundo
         for device in broker.get_devices():
+            msg = {"command": 'ping'}
+            msg_crypt = Utils.encrypt(msg)
             try:
+                logging.info(f"TCP HEALTH CONN - Testando a conexão do device {device['ip']}")
                 # Tenta enviar uma especie de ping que será desconsiderado peo dispositivo, apenas para verificar se ainda está conectado
-                device['tcp_connection'].send(b'')
+                device['tcp_connection'].send(msg_crypt)
             except OSError:
                 # Se ocorrer um erro no envio, estou supondo que a conexão não está mais ativa
                 broker.delete_device(device['ip'])

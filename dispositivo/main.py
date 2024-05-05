@@ -36,7 +36,6 @@ while conn == False:
         socket_tcp.close() # Fecho a conexão para tentar reiniciar
         # logging.critical(f'TCP - Não foi possível estabelecer conexão com o Broker.')
 
-
 ###### =========== BLOCO DE CRIAÇÃO DA THREADS =========== ######
 # == Controle de quando enviar dados via UDP == ##
 thread_udp = threading.Thread(target=senderDataUdp, args=[dispositivo, socket_udp])
