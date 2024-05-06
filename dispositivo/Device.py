@@ -1,5 +1,4 @@
 from enum import Enum
-import time
 import random
 
 class Status (Enum):
@@ -33,7 +32,7 @@ class Sensor:
         Return.
             self.dado (int) -> valor da leitura'''
         # Atualizando o valor
-        f = random.randint(-100, 100)/100
+        f = random.randint(-200, 200)/1000
         self._data = self._data + f
         # 
         return round(self._data, 2)

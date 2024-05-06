@@ -5,7 +5,6 @@ from config import conf
 
 import socket
 import time
-from cryptography.fernet import Fernet
 
 # import logging
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -30,6 +29,6 @@ def senderDataUdp(device: Sensor, socket: socket.socket):
             # Envia os dados para o broker
             socket.sendto(data_crypted, (conf['broker_host_ip'], conf['broker_host_port_udp']))
             # logging.info(f'UDP - Dado enviado {json_data} para BROKER')
-            time.sleep(1.5)
+            time.sleep(1)
     socket.close()
 

@@ -1,5 +1,4 @@
 import socket
-from cryptography.fernet import Fernet
 from Broker import Broker
 import time
 from config import conf

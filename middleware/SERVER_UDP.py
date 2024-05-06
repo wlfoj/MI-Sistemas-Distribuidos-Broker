@@ -1,6 +1,5 @@
 import socket
 from Utils import Utils
-from cryptography.fernet import Fernet
 from Broker import Broker
 
 import logging

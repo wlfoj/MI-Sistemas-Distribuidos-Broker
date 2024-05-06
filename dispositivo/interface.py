@@ -2,9 +2,6 @@ import os
 
 from Device import Sensor, Status
 
-# import logging
-# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 def cleanScreen():
     if os.name == 'posix': # Verifica se é um sistema tipo Unix (Linux, macOS, etc.)
         os.system('clear') # Comando para limpar a tela no Unix

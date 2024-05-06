@@ -80,10 +80,56 @@ Em 'middleware' estão os arquivos referentes ao processo do Broker. Em 'config.
 # 1. Introdução
 # 2. Fundamentação Teórica
 # 3. Metodologia
+Todas as comunicações UDP ocorrem pela porta 12346, as TCP são na porta 12345.
 O broker só permite que cada tópico de dados tenha apenas um único publicador, e cada tópico de comandos tem apenas um único ouvinte
 ## 3.1 Aplicação gráfica
 ## 3.2 Middleware
 ### 3.2.1 API Restfull
+Quais são os verbos e rotas executados na camada de aplicação.
+
+A API Rest possui 5 endpoints, ou rotas.
+- O endpoint '/', acessado por uma requisição GET, que é usado para verificar se a aplicação está disponível.
+
+- O endpoint '/pub/TOPIC' (onde TOPIC é um parametro GET que deve conter o nome de um tópico), acessado por uma requisição POST, que é usado publicar um comando, emitido pela aplicação, no tópico especificado. É emitido um status 403 caso a  aplicação tente publicar em um tópico não permitido, 400 se não enviar a estrutura que se espera, 201 caso consiga registrar e 200 caso receba mas não consiga.
+- O endpoint '/sub'
+- O endpoint '/sub/TOPIC'
+- O endpoint '/device_names'
+
+
+
+
+@app.route('/sub', methods=['GET'])
+@cache.cached(timeout=5)  # Cache válido por 5 segundos
+def get_mensagens():
+    '''Pega mensagens de todos os tópicos'''
+    # Aqui você pode implementar a lógica para ler as mensagens do tópico MQTT
+    # Neste exemplo, retornaremos uma lista vazia
+    return jsonify(broker.get_data_from_all_devices()), 200
+
+
+# Rota para ler as mensagens de um dispositivo especifico
+@app.route('/sub/<string:topic>', methods=['GET'])
+@cache.cached(timeout=5)  # Cache válido por 5 segundos
+def get_mensagem(topic:str):
+    '''Pega uma mensagem de um topico. É utilizado para ler um dado de um dispositivo especifico'''
+    # Se não for um tópico permitido, já encerra e retorna o status
+    if not topic.startswith('data_'):
+        return jsonify({"erro": "Você não tem permissão para este topico"}), 403
+    msg = broker.pop_message(topic)
+    # Aqui você pode implementar a lógica para ler as mensagens do tópico MQTT
+    # Neste exemplo, retornaremos uma lista vazia
+    return jsonify({'value': msg}), 200
+
+
+@app.route('/device_names', methods=['GET'])
+@cache.cached(timeout=2) # Cache válido por 2 segundos
+def get_devices():
+    '''Obtem os nomes dos dispositivos com conexões ativas no Broker
+    Return.
+        - A lista com o nome de dispositivos conetados ao Broker
+            EX: ['Dispositivo_1', 'Dispositivo_2']
+    '''
+    return jsonify(broker.get_registered_devices()), 200
 ### 3.2.2 Broker
 ## 3.3 Device
 # 4. Resultados

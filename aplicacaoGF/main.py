@@ -4,14 +4,16 @@ import sys
 
 import requests
 
-# Obtém os argumentos da linha de comando
-argument = sys.argv
+
 ## =============================== BLOCO DE INICIALIZAÇÃO DE VARIAVEIS =============================== ##
-url_api = "http://"+argument[1] +":5005"
+argument = sys.argv # Obtém os argumentos da linha de comando
+url_api = "http://"+ argument[1] +":5005"
 command_options = ["Ligar", "Desligar", "Pausar", "Continuar"]
 devices_list = []
+INTERVAL_UPDATE_TIME = 2000 # Apresenta o intervalo de tempo para fazer uma nova requisição para a API
+
 ## =============================== BLOCO DE FUNÇÕES PARA INICIALIZAÇÃO =============================== ##
-def get_devices():#ok
+def get_devices():
     '''Função que obtem os dispositivos conectados/permitidos no broker. Deve ser executa ao iniciar a aplicação, e de tempos em tempos.
     Return.
         response (list) -> Lista com os identificadores de cada dispositivo
@@ -29,7 +31,7 @@ def get_devices():#ok
     return response
 
 
-def send_command():#ok
+def send_command():
     '''Função para enviar o comando, via http, para api do broker. Em caso de envio e confirmação do broker, exibe uma mensagem de sucesso
     '''
     ## Obtendo os valores nos inputs
@@ -56,8 +58,6 @@ def send_command():#ok
 
 
 
-#
-devices_list = get_devices()
 ## =============================== BLOCO PARA CRIAR A INTERFACE =============================== ##
 # Criando a janela principal
 root = tk.Tk()
@@ -98,6 +98,8 @@ for col in table_columns:
     table.heading(col, text=col)
 table.pack(fill="both", expand=True)
 
+
+## =============================== BLOCO PARA ATUALIZAR VALORES EXIBIDOS =============================== ##
 # Função para atualizar a tabela com os dados recebidos
 def update_table():
     response = None
@@ -116,6 +118,7 @@ def update_table():
             aux = (dado['device_name'], dado['value'])
             table.insert("", "end", values=aux)
 
+
 def update_devices_list():
     '''Atualiza a lista de dispositivos na interface gráfica.'''
     global devices_list
@@ -128,11 +131,14 @@ def update_periodically():
     update_table()
     # Atualiza a lista de dispositivos
     update_devices_list()
-    # faz a atualização a cada 5s
-    root.after(2000, update_periodically)
+    # faz a atualização a cada x ms
+    root.after(INTERVAL_UPDATE_TIME, update_periodically)
 
 # Chamando a função para atualizar periodicamente
 update_periodically()
+
+
+
 
 # Rodando a aplicação
 root.mainloop()

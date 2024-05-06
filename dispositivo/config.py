@@ -10,6 +10,6 @@ conf = {
     "broker_host_port_udp": 12346,
     "broker_host_port_tcp": 12345,
     "unit_measurement": os.getenv('UNIT_MEASUREMENT', ''),
-    "NAME_DEVICE": os.environ.get('NAME_DEVICE', ' '),
+    "device_name": os.getenv('DEVICE_NAME', ''),
     "key_crypt": base64.urlsafe_b64encode(b'Jupiter ser feliz com Netuno   ,') # Para usar no construtor do FERNET
 }

@@ -7,7 +7,7 @@ class Broker():
     def __init__(self):
         self.mutex = threading.Lock()
         self._LIMIT_DISP_CONNCTED = 10
-        self._disp_num = 0 # Representa o número de disposiitivo conectado
+        self._disp_num = 0 # Representa o número do último disposiitivo registrado, auto incrementa
         self._devices = [] # A lista de dispositivos {"device_name":"", "ip": '', "tcp_connection": None}
         #########
         self._topics = {

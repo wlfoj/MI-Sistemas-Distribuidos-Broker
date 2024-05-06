@@ -35,6 +35,31 @@ $ python main.py 127.0.0.1
 
 
 
+O sistem como um todo utilizou as seguintes bibliotecas:
+flask
+flask_caching
+socket
+threading
+logging
+time
+cryptography
+json
+base64
+requests
+sys
+tkinter
+os
+
+# Documentação do código
+Com intuito de produzir um código legível e bem documentado, todo o código se encontra comentado. Atribuiu-se nomes representativos para variáveis, métodos e classes.
+
+# Emprego do Docker
+Fez-se o emprego do Docker, tanto na etapa de desenvolvimento quanto de produção, para isolar o sistema de eventuais problemas que podem ocorrer ao utilizar uma máquina compartilhada.
+
+# Confiabilidade da solução (tratamento das conexões)
+Com intuito de tornar o sistema confiável e robusto, desenvolveu-se soluções para lidarem com situações critícas, como a desconexão de algum nó (Broker ou Dispositivo). Cada dispositivo é capaz de identificar quando o Broker é desconectado, como tammbém é capaz de estabelecer uma nova conexão com Broker.
+O Broker possui mecanismos para detectar quando um dispositivo é desconectado, e atuar removendo o mesmo de sua lista de conexões.
+
 # Como a arquitetura foi desenvolvida. Quais os componentes e como eles se comunicam. Qual a ordem das mensagens trocadas.
 A arquitetura da solução desenvolvida apresenta 3 componentes principais: o middleware, ou Broker; o dispositivo; a aplicação.
 
@@ -53,4 +78,11 @@ O Broker repassa os comandos recebidos pela aplicação para os dispositivos res
 O Broker apresenta suporte a conexões simultâneas de vários dispositivos (o produto está limitado a 10 conexões, para fins de testes) e por isso se fez necessário o uso de threads. O Broker possui 5 'subprocessos': o da API Restfull; o que recebe mensagens via UDP; o que envia mensagens via TCP; o que recebe e válida as conexões de dispositivos; o que verifica se algum dispositivo foi desconectado.
 Como todas as threads fazem uso de uma área de dados sensíveis, que são os dispositivos registrados e os tópicos associados, naturalmente, iria ocorrer de alguma thread apagar elementos de uma lista enquanto a outra thread estivesse iterando-a. Para sanar esse problema, fez-se necessário utilizar um mutex, assim somente um thread acessará uma região crítica por vez. 
 
-No dispositivo há 3 threads: a que ennvia dados via UDP; a que recebe dados via TCP; a que controla a interface manual do mesmo.
+No dispositivo há 3 threads: a que envia dados via UDP; a que recebe dados via TCP; a que controla a interface manual do mesmo.
+
+# Gerenciamento do dispositivo
+O dispositivo possui uma thread responsável por prover uma [interface](https://github.com/wlfoj/concorrencia-conectividade/blob/main/dispositivo/interface.py), em linha de console, para que um usuário possa realizar operações como: ligar, desligar, pausar, alterar temperatura. Tudo isso é feito sem bloquear o funcionamento do mesmo.
+
+# Formatacao, envio e tratamento de dados (Que tipo de formatação foi usada para transmitir os dados, permitindo que nós diferentes compreendam as mensagens trocadas.)
+
+# Protocolo de comunicação entre dispositivo e Broker - camada de aplicação (Que protocolos de comunicação foram desenvolvidos entre os dispositivos e o broker. Como é a "conversa" entre os dispositivos e o broker.)

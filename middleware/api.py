@@ -4,7 +4,6 @@ from flask_caching import Cache
 # 
 import socket
 import threading
-from cryptography.fernet import Fernet
 # Imports referentes ao broker e ao de mensagens via TCP e UDP
 from SERVER_TCP import thread_listen_conections_tcp, thread_send_message, thread_check_conn_health
 from SERVER_UDP import thread_udp_receiver
@@ -24,31 +23,33 @@ broker = Broker()
 
 
 
-## ========== Bloco para os endpoints da API ========== ##
+## ============================== BLOCO PARA ENDPOINTS DA API ============================== ##
+@app.route('/', methods=['GET'])
+def health():
+    '''Este endpoint serve apenas para verificar se a API está rodando'''
+    return 'HELLO WORLD'
+
+
 @app.route('/pub/<string:topic>', methods=['POST'])
 def post_mensagem(topic: str):
-    '''Publica a mensagem no topico'''
+    '''Publica a mensagem no topico. Por estar exposta apenas ao cliente aplicação, só possível fazer postagens de comandos.
+    '''
     # Se não for um tópico permitido, já encerra e retorna o status
     if not topic.startswith('command'):
         return jsonify({"erro": "Você não tem permissão para este topico"}), 403
     # Obtem o body da requisição
     conteudo = request.json
-    # print(conteudo['topico'])
-    ## === Bloco para validar o body === ##
     # Verifica se a solicitação contém um JSON
     if conteudo is None:
         return jsonify({"erro": "A solicitação deve conter um JSON"}), 400
     confirm = broker.publish_message(topic, conteudo['message'], '')
-    status = 200
-    if confirm:
-        status = 201
-    return jsonify({"mensagem": "Mensagem publicada com sucesso"}), status
+    status = 201
+    msg = "Mensagem publicada com sucesso"
+    if not confirm:
+        status = 200
+        msg = "Recebemos a solicitação, mas não conseguimos processar"
+    return jsonify({"mensagem": msg}), status
 
-
-
-@app.route('/', methods=['GET'])
-def hello():
-    return 'HELLO WORLD'
 
 @app.route('/sub', methods=['GET'])
 @cache.cached(timeout=5)  # Cache válido por 5 segundos
@@ -63,7 +64,7 @@ def get_mensagens():
 @app.route('/sub/<string:topic>', methods=['GET'])
 @cache.cached(timeout=5)  # Cache válido por 5 segundos
 def get_mensagem(topic:str):
-    '''Pega uma mensagem de um topico'''
+    '''Pega uma mensagem de um topico. É utilizado para ler um dado de um dispositivo especifico'''
     # Se não for um tópico permitido, já encerra e retorna o status
     if not topic.startswith('data_'):
         return jsonify({"erro": "Você não tem permissão para este topico"}), 403
@@ -74,9 +75,13 @@ def get_mensagem(topic:str):
 
 
 @app.route('/device_names', methods=['GET'])
-@cache.cached(timeout=2)  # Cache válido por 5 segundos
+@cache.cached(timeout=2) # Cache válido por 2 segundos
 def get_devices():
-    '''Obtem os nomes dos dispositivos cadastrados'''
+    '''Obtem os nomes dos dispositivos com conexões ativas no Broker
+    Return.
+        - A lista com o nome de dispositivos conetados ao Broker
+            EX: ['Dispositivo_1', 'Dispositivo_2']
+    '''
     return jsonify(broker.get_registered_devices()), 200
 
 
