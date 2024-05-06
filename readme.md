@@ -1,4 +1,20 @@
-# 0. Passo a passo para executar no LARSID
+# TEC502-MI-Concorrência-Conectividade-01: Internet das Coisas
+
+### Sumário 
+------------
++ [Como executar no LARSID](#0-como-executar-no-larsid)
++ [Como executar no computador local](#0-passo-a-passo-para-execução-no-próprio-computador)
++ [Introdução](#1-introdução)
++ [Visão geral](#2-visão-geral-da-arquitetura-da-solução)
++ [Discussão sobre produto](#discussão-sobre-produto)
++ &nbsp;&nbsp;&nbsp;[Broker](#31-broker)
++ &nbsp;&nbsp;&nbsp;[Dispositivo](#32-dispositivo)
++ &nbsp;&nbsp;&nbsp;[Aplicação](#33-aplicação)
++ &nbsp;&nbsp;&nbsp;[Comunicações](#34-comunicações-e-protocolos-desenvolvidos)
++ &nbsp;&nbsp;&nbsp;[Aspectos Gerais](#35-aspectos-gerais)
++ [Conclusão](#4-conclusões)
+
+# 0. Como executar no LARSID
 É necessário que a Aplicação rode em um computador com [Python](https://www.python.org) 3.11, ou mais recente, instalado. É preciso que o computador tenha o Docker instalado, pois o Broker e os Devices serão executados por  meio de containers.
 
 ### 0.1 Faça pull das imagens utilizadas
@@ -33,7 +49,7 @@ Como exemplo:
 $ python main.py 127.0.0.1
 ```
 
-# 0. Passo a passo para execução no próprio computador
+# 0. Como executar no computador local
 ### 0.1 Criação dos containers
 Para criar o sistema de maneira isolada no seu computador, execute o comando abaixo no seu terminal, estando na pasta raiz do projeto. O comando irá criar um container para o Broker e 4 containers para os dispositivos.   
 ```
@@ -61,76 +77,146 @@ $ cd aplicacaoGF/
 $ python main.py
 ```
 
-# Explicação da organização do código
-Cada pasta possui um dos elementos do sistema a ser desenvolvido, sendo eles: a aplicação gráfica, o middleware e o dispositivo. Na figura abaixo é possível ver como se dá a relação de comunicação entre os mesmos.
+
+# 1. Introdução
+# 2. Visão geral da arquitetura e componentes da solução
+Cada pasta possui um dos elementos do sistema a ser desenvolvido, sendo eles: a Aplicação, o Broker e o Dispositivo. Na figura abaixo é possível ver como se dá a relação de comunicação entre os mesmos.
 
 ![Arquitetura da Solução](img/arquitetura_solucao.png)
 
-A aplicação deve requisitar os dados que precisa ao Broker, por meio de requisições HTTP que foram expostas pela API Restfull desenvolvida no Broker, sendo eles: os dispositivos conectados no broker e os dados dos dispositivos conectados ao broker. A aplicação, ainda, deve enviar comandos ao Broker por meio de requisições HTTP e tais comandos devem ser repassados aos dispositivos especificados.
+A aplicação deve requisitar os dados que precisa ao Broker, por meio de requisições HTTP que foram expostas pela API Restfull desenvolvida no Broker, sendo tais dados: os dispositivos conectados no broker e os valores dos dispositivos conectados ao broker. A aplicação, ainda, deve enviar comandos ao Broker por meio de requisições HTTP e tais comandos devem ser repassados aos dispositivos especificados.
+
+O Dispositivo não deve saber da existência da Aplicação, pois ambos só se comunica com o Broker. O Dispositvo envia os dados de sua leitura por meio do protocolo UDP para o Broker e deverá receber os comandos, provenientes da Aplicação, por meio do protocolo TCP.
+
+Na pasta 'aplicacaoGF' está o código responsável pelo processo da aplicação gráfica que envia comandos para o broker e requisita dados utilizando o protocolo HTTP. 
+
+Na pasta 'dispositivo' tem os arquivos necessários a execução do processo do device. Em 'config.py' tem as infoormações para realizar as comunicações com o broker, como as portas TCp e UDP que o mesmo escuta, bem como seu endereço IPv4. Ainda em 'config.py' há a key que será usada para que o dispositivo consiga se conectar e se autenticar com o broker, e tammbém há o segredo que serve como chave para criptografar os dados que serão enviados e descriptografar os recebidos. Em 'interface.py' estão os arquivos referentes as rotinas executadas na thread que trata do menu ao qual o usuário poderá alterar dados e inserir comandos para o dispositivo. Os arquivos 'myTcpSet.py' e 'myUdpSet.py' tratam das rotinas executadas nas threads que lidam com o protocolo TCP e UDP respectivamente. 'Device.py' apresenta a classe que representa o dispositivo.
+
+Na pasta 'middleware' estão os arquivos referentes ao processo do Broker. Em 'config.py' tem as infoormações para realizar as comunicações com o os dispositivos e a aplicação, como as portas TCp e UDP que o mesmo escuta, bem como os endereços IPv4 que a API Restfull irá permitir receber requisições e os endereços ao qual se aceitará conexões TCP. Ainda em 'config.py' há as informações necessárias para autenticação dos dispositivos e criptografia das informações, bem como apresentado em 'dispositivo'. Os arquivos 'SERVER_TCP.py' e 'SERVER_UDP.py' tratam das rotinas executadas nas threads que lidam com o protocolo TCP e UDp respectivamente. 'Broker.py' apresenta a classe que representa o broker e nele há toda a gerência dos dispositivos conectados e seus respectivos tópicos. Em 'api.py' tem a declaração dos endpoints e tudo o mais relacionado a API Restful, porém fez-se do arquivo o main de todo o processo, então tem-se a iniciação dos sockets e etc.
 
 
-O dispositivo não deve saber da existência da aplicação, pois o mesmo só se comunica com o Broker. O dispositvo envia os dados de sua leitura por meio do protocolo UDP para o Broker e deverá receber os comandos, provenientes da aplicação gráfica, por meio do protocolo TCP.
+# 3. Discussão sobre produto
+### 3.1 Broker
+O Broker atua como um agente intermediário entre a Aplicação e o Dispositivo. Usou-se uma abordagem de Broker com tópicos para este problema, logo tem-se a Aplicação sendo o publisher em todos os tópicos de comandos e sendo subscribe em todos os tópicos de dados. O Dispositivo é publicador no seu próprio tópico de dados e é ouvinte do seu próprio tópico de comandos. Os Dispositivos, ao se conectarem e serem validados pelo Broker, recebem um tópico de comando e de dados exclusivo.
 
-Em 'aplicacaoGF' está o código responsável pelo processo da aplicação gráfica que envia comandos para o broker e requisita dados utilizando o padrão HTTP. 
+O Broker repassa os comandos recebidos pela aplicação para os dispositivos respectivos por meio do protocolo TCP. Há uma thread no Broker que busca tópicos com comandos ainda não enviados e os envia. Os comandos enviados pelo Broker são mensagens importantes e não podem ser perdidas no envio, portanto utilizou-se o protocolo TCP, pois o mesmo apresenta uma confiança no seu envio que o UDP não possui.
 
-Em 'dispositivo' tem os arquivos necessários a execução do processo do device. Em 'config.py' tem as infoormações para realizar as comunicações com o broker, como as portas TCp e UDP que o mesmo escuta, bem como seu endereço IPv4. Ainda em 'config.py' há a key que será usada para que o dispositivo consiga se conectar e se autenticar com o broker, e tammbém há o segredo que serve como chave para criptografar os dados que serão enviados e descriptografar os recebidos. Em 'interface.py' estão os arquivos referentes as rotinas executadas na thread que trata do menu ao qual o usuário poderá alterar dados e inserir comandos para o dispositivo. Os arquivos 'myTcpSet.py' e 'myUdpSet.py' tratam das rotinas executadas nas threads que lidam com o protocolo TCP e UDP respectivamente. 'Device.py' apresenta a classe que representa o dispositivo.
+### 3.2 Dispositivo
+O Dispositivo é o elemento responsável por enviar dados para o Broker e receber comandos do mesmo. No Dispositivo há 3 threads: a que envia dados via UDP; a que recebe dados via TCP; a que controla a interface manual do mesmo. Assim que seu processo é iniciado, o mesmo procura estabelecer a conexão com o Broker e, caso a conexão caia, tentará restabelecer uma nova.
 
-Em 'middleware' estão os arquivos referentes ao processo do Broker. Em 'config.py' tem as infoormações para realizar as comunicações com o os dispositivos e a aplicação, como as portas TCp e UDP que o mesmo escuta, bem como os endereços IPv4 que a API Restfull irá permitir receber requisições e os endereços ao qual se aceitará conexões TCP. Ainda em 'config.py' há as informações necessárias para autenticação dos dispositivos e criptografia das informações, bem como apresentado em 'dispositivo'. Os arquivos 'SERVER_TCP.py' e 'SERVER_UDP.py' tratam das rotinas executadas nas threads que lidam com o protocolo TCP e UDp respectivamente. 'Broker.py' apresenta a classe que representa o broker e nele há toda a gerência dos dispositivos conectados e seus respectivos tópicos. Em 'api.py' tem a declaração dos endpoints e tudo o mais relacionado a API Restful, porém fez-se do arquivo o main de todo o processo, então tem-se a iniciação dos sockets e etc.
+Há uma interface, em linha de console, para que um usuário possa realizar operações como: ligar, desligar, pausar, alterar temperatura. Tudo isso é feito sem bloquear o funcionamento do mesmo. Devido ao requisito do problema, só é possível alterar os valores do dispositivos na interface manual. 
 
-# 1. Introdução
-# 2. Fundamentação Teórica
-# 3. Metodologia
-Todas as comunicações UDP ocorrem pela porta 12346, as TCP são na porta 12345.
-O broker só permite que cada tópico de dados tenha apenas um único publicador, e cada tópico de comandos tem apenas um único ouvinte
-## 3.1 Aplicação gráfica
-## 3.2 Middleware
-### 3.2.1 API Restfull
-Quais são os verbos e rotas executados na camada de aplicação.
+Em outra thread há um algoritmo que lida com os comandos recebidos pelo Broker (inicialmente enviados pela Aplicação), para que seja possível que a Aplicação controle o dispositivo remotamente. Esta mesma thread detecta quando uma conexão é destruída ou está com problemas e tenta criar um nova.
 
-A API Rest possui 5 endpoints, ou rotas.
-- O endpoint '/', acessado por uma requisição GET, que é usado para verificar se a aplicação está disponível.
-
-- O endpoint '/pub/TOPIC' (onde TOPIC é um parametro GET que deve conter o nome de um tópico), acessado por uma requisição POST, que é usado publicar um comando, emitido pela aplicação, no tópico especificado. É emitido um status 403 caso a  aplicação tente publicar em um tópico não permitido, 400 se não enviar a estrutura que se espera, 201 caso consiga registrar e 200 caso receba mas não consiga.
-- O endpoint '/sub'
-- O endpoint '/sub/TOPIC'
-- O endpoint '/device_names'
+A terceira thread é a responsável por fazer o envio via UDP do valor lido pelo sensor para o Broker, isso só será feito caso o mesmo esteja ligado e com uma conexão com o Broker. Os dados são enviados continuamente para o Broker, em intervalos de tempo muito curtos, e por isso os mesmos são enviados via UDP, visto que é mais rápido que o envio via TCP e que não há consequências graves caso uma mensagem seja perdida (outra seria recebida em sequência).
 
 
+### 3.3 Aplicação
+A Aplicação é o elemento utilizado para gerenciar os Dispositivos remotamente, seja enviando comandos ou lendo seus valores. Na mesma será possível enviar comando para um dispositivo especifico, bem como visualizar os valores de todos os que  estão com  conexões ativas no Broker.
+
+### 3.4 Comunicações e protocolos desenvolvidos
+As comunicações TCP entre o Broker e Dispositivo se dão pela porta 12346, as comunicações UDP entre o Broker e o Dispositivo se dão pela porta 12345. A API Restful do Broker está exposta na porta 5005.
+
+Usou-se, em todas as mensagens trocadas, o formato json, pois seria mais fácil para os destinatários pocessarem as mensagens recebidas, visto que a mesma estaria em uma estrutura definida e esperada. Aplicou-se criptografia em todas as mensagens para garantir uma maior segurança ao sistema, visto que qualquer dispositivo poderia tentar se conectar ao Broker. O Broker e o dispositivo devem ter o segredo usado para criptografar e descriptografar as mensagens trocadas.
+
+#### 3.4.1 Registro do dispositivo no Broker
+Para que possam fazer parte do sistema, os Dispositivos devem estabelecer uma conexão TCP com o Broker e, imediatamente em seguida, enviar o json criptografado abaixo:
+```
+# Exemplo de Json enviado para o Broker aceitar a conexão
+{
+    'key': 'CHAVE DE AUTENTICAÇÃO NO BROKER AQUI'
+}
+```
+O Broker irá retornar um json, criptografado, informando se a conexão foi aceita ou não. Conforme exemplo abaixo.
+```
+# Exemplo de resposta a conexão
+{
+    'is_acc': True
+}
+```
+
+#### 3.4.2 Envio dos dados do Dispositivo para o Broker
+O Dispositivo, assim que ligado e conectado ao Broker, enviará os seus dados, pelo protocolo UDP, para o Broker de acordo com o formato abaixo.
+
+```
+# Exemplo de dado enviado 
+{
+    "data": '44 mV',
+}
+```
+
+#### 3.4.3 Envio dos comandos do Broker para o Dispositivo
+O Broker busca, ciclicamente, comandos que ainda não foram enviados para os dispositivos e quando os encontra, envia pelo protocolo TCP. Ao encontrar o comando ainda não enviado a um Dispositivo, o Broker irá buscar a conexão do dispositivo que irá receber tal comando e o enviará como no formato abaixo.
+```
+# Exemplo de comando enviado 
+{
+    "command": 'Ligar',
+}
+```
+Há outro comando enviado, periodicamente e independente da aplicação, é o comando 'ping'. Tal comando é enviado para verificar se o Dispositivo continua conectado ao Broker.
+
+#### 3.4.4 API Restful
+A comunicação entre a Aplicação e o Broker se dá por meio do protocolo HTTP e dos endpoints fornecidos pela API Restfull do Broker. Abaixo tem-se o detalhamento de cada caso de uso da API, bem como seu endpoint associado e a explicação dos parametrôs.
+
+#### 3.4.4.1 Verificação de saúde do Broker
+Descrição: Utilizado para verificar se o Broker está operando.
+Endpoint: /
+Método: GET
+#### 3.4.4.2 Publicação de conteúdo
+Descrição: Utilizado para que a aplicação publique os comandos aos dispositivos associados. É emitido status: 403, caso a  aplicação tente publicar em um tópico não permitido; 400, se não enviar a estrutura que se espera: 201, caso consiga registrar e 200, caso receba mas não consiga.
+Endpoint: /pub/TOPIC
+Método: POST
+Parâmetros:
+    - TOPIC: Parametro GET usado para especificar o nome do tópico onde se irá publicar o comando.
+    - message: Comando que será enviado ao Dispositivo. Deverá ser Ligar, Desligar, Pausar ou Continuar.
+```
+# Exemplo de requisição no rota /pub/comando_1
+{
+    'message': 'Ligar'
+}
+```
+#### 3.4.4.3 Obtenção de todos os dados no Broker
+Descrição: Utilizado para obter todos os dados de dispositivos que já enviaram seus dados.
+Endpoint: /sub
+Método: GET
+**Exemplo de resposta:**
+```
+# Exemplo de resposta para a requisição em /sub
+{
+    'data': [{'device_name': 'Dispositivo_1', 'value': '44 F'},
+    {'device_name': 'Dispositivo_2', 'value': '100 V'},
+    {'device_name': 'Dispositivo_3', 'value': '2 mV'}]
+}
+```
+#### 3.4.4.4 Obtenção de Dispositivos conectados
+Descrição: Utilizado para obter a lista com o nome dos dispositivos cadastrados no Broker.
+Endpoint: /device_names
+Método: GET
+**Exemplo de resposta:**
+```
+# Exemplo de resposta para a requisição em /sub
+{
+    'data': ['Dispositivo_1'
+            'Dispositivo_2',
+            'Dispositivo_3']
+}
+```
 
 
-@app.route('/sub', methods=['GET'])
-@cache.cached(timeout=5)  # Cache válido por 5 segundos
-def get_mensagens():
-    '''Pega mensagens de todos os tópicos'''
-    # Aqui você pode implementar a lógica para ler as mensagens do tópico MQTT
-    # Neste exemplo, retornaremos uma lista vazia
-    return jsonify(broker.get_data_from_all_devices()), 200
 
 
-# Rota para ler as mensagens de um dispositivo especifico
-@app.route('/sub/<string:topic>', methods=['GET'])
-@cache.cached(timeout=5)  # Cache válido por 5 segundos
-def get_mensagem(topic:str):
-    '''Pega uma mensagem de um topico. É utilizado para ler um dado de um dispositivo especifico'''
-    # Se não for um tópico permitido, já encerra e retorna o status
-    if not topic.startswith('data_'):
-        return jsonify({"erro": "Você não tem permissão para este topico"}), 403
-    msg = broker.pop_message(topic)
-    # Aqui você pode implementar a lógica para ler as mensagens do tópico MQTT
-    # Neste exemplo, retornaremos uma lista vazia
-    return jsonify({'value': msg}), 200
 
 
-@app.route('/device_names', methods=['GET'])
-@cache.cached(timeout=2) # Cache válido por 2 segundos
-def get_devices():
-    '''Obtem os nomes dos dispositivos com conexões ativas no Broker
-    Return.
-        - A lista com o nome de dispositivos conetados ao Broker
-            EX: ['Dispositivo_1', 'Dispositivo_2']
-    '''
-    return jsonify(broker.get_registered_devices()), 200
-### 3.2.2 Broker
-## 3.3 Device
-# 4. Resultados
-# 5. Conclusões
+
+### 3.5 Aspectos gerais
+Com intuito de produzir um código legível e bem documentado, todo o código se encontra comentado. Atribuiu-se nomes representativos para variáveis, métodos e classes. Fez-se o emprego do Docker, tanto na etapa de desenvolvimento quanto de produção, para isolar o sistema de eventuais problemas que podem ocorrer ao utilizar uma máquina compartilhada. Com relação a Aplicação, por se tratar de uma interface gráfica em python, escolheu-se manter a mesma fora do Docker, devido a complexidade obtida ao expor a mesma no computador local.
+
+O Broker apresenta suporte a conexões simultâneas de vários dispositivos (no código está limitado a 10 conexões, para fins de testes) e por isso se fez necessário o uso de threads. O Broker possui 5 'subprocessos': o da API Restfull; o que recebe mensagens via UDP; o que envia mensagens via TCP; o que recebe e valida as conexões TCP de dispositivos; o que verifica se algum dispositivo foi desconectado.
+Como todas as threads fazem uso de uma área de dados sensíveis, que são os dispositivos registrados e os tópicos associados, naturalmente iria ocorrer de alguma thread apagar elementos de uma lista enquanto a outra thread estivesse iterando-a. Para sanar esse problema, utilizou-se um mutex, assim somente uma thread acessará uma região crítica por vez. 
+
+Com intuito de tornar o sistema confiável e robusto, desenvolveu-se soluções para lidarem com situações critícas, como a desconexão de algum nó (Broker ou Dispositivo). Cada dispositivo é capaz de identificar quando o Broker é desconectado, como tammbém é capaz de estabelecer uma nova conexão com Broker.
+O Broker possui mecanismos para detectar quando um dispositivo é desconectado, e atuar removendo o mesmo de sua lista de conexões. Para este trabalho, tanto o Broker quanto o Dispositivo são considerados desconectados quando a conexão TCP apresenta alguma inconsistência.
+
+# 4. Conclusão
+O produto desenvolvido atende aos requisitos apresentados na situação problema. Durante o processo de desenvolvimento, pode-se aprender sobre técnicas de redes e aplicadas em sistemas distribuídos (como a conectividade), e também características de sistemas com threads (como a concorrência). Desta forma, este projeto serviu para aprofundar os conhecimentos da disciplina teórica (IPv4, TCP e UDP), como também serviu para a formação profissional.
+Embora o sistema implementado atenda de forma eficaz o problema proposto, o mesmo pode ser melhorado em aspectos de algoritmos e na utilização de mais threads para o processamento de requisições.

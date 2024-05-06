@@ -25,6 +25,7 @@ def get_devices():
     # Realiza a requisição GET
     try:
         response = requests.get(url).json()
+        response = response['data']
     except:
         pass
 
@@ -109,6 +110,7 @@ def update_table():
     erro = False
     try:
         response = requests.get(url).json()
+        response = response['data']
     except:
         erro = True
     if response:

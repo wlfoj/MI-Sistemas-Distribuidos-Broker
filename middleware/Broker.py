@@ -73,15 +73,6 @@ class Broker():
         self.mutex.release()
         return conn
 
-    def pega_mensagens_todos__topicss_dados(self):
-        res = []
-        self.mutex.acquire()
-        for chave, item in self._topics.items():
-            if chave.startswith('dados_'):
-                res.append({'dispositivo': self.translate_ip_inn_name(item['publisher']), 'value': self.pop_message(chave)})
-        self.mutex.release()
-        return res
-
 
 
 #### ============ BLOCO DE MÉTODOS AUXILIARES ============ ####  

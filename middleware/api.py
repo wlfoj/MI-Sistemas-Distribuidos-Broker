@@ -57,21 +57,9 @@ def get_mensagens():
     '''Pega mensagens de todos os tópicos'''
     # Aqui você pode implementar a lógica para ler as mensagens do tópico MQTT
     # Neste exemplo, retornaremos uma lista vazia
-    return jsonify(broker.get_data_from_all_devices()), 200
+    resp = { "data": broker.get_data_from_all_devices()}
+    return jsonify(resp), 200
 
-
-# Rota para ler as mensagens de um dispositivo especifico
-@app.route('/sub/<string:topic>', methods=['GET'])
-@cache.cached(timeout=5)  # Cache válido por 5 segundos
-def get_mensagem(topic:str):
-    '''Pega uma mensagem de um topico. É utilizado para ler um dado de um dispositivo especifico'''
-    # Se não for um tópico permitido, já encerra e retorna o status
-    if not topic.startswith('data_'):
-        return jsonify({"erro": "Você não tem permissão para este topico"}), 403
-    msg = broker.pop_message(topic)
-    # Aqui você pode implementar a lógica para ler as mensagens do tópico MQTT
-    # Neste exemplo, retornaremos uma lista vazia
-    return jsonify({'value': msg}), 200
 
 
 @app.route('/device_names', methods=['GET'])
@@ -82,7 +70,8 @@ def get_devices():
         - A lista com o nome de dispositivos conetados ao Broker
             EX: ['Dispositivo_1', 'Dispositivo_2']
     '''
-    return jsonify(broker.get_registered_devices()), 200
+    resp = { "data": broker.get_registered_devices()}
+    return jsonify(resp), 200
 
 
 
