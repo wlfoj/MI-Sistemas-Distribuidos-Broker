@@ -2,8 +2,8 @@
 
 ### Sumário 
 ------------
-+ [Como executar no LARSID](#0-como-executar-no-larsid)
-+ [Como executar no computador local](#0-passo-a-passo-para-execução-no-próprio-computador)
++ [Como executar no LARSID](#como-executar-no-larsid)
++ [Como executar no computador local](#0-como-executar-no-computador-local)
 + [Introdução](#1-introdução)
 + [Visão geral](#2-visão-geral-da-arquitetura-da-solução)
 + [Discussão sobre produto](#discussão-sobre-produto)
@@ -14,33 +14,33 @@
 + &nbsp;&nbsp;&nbsp;[Aspectos Gerais](#35-aspectos-gerais)
 + [Conclusão](#4-conclusões)
 
-# 0. Como executar no LARSID
+# Como executar no LARSID
 É necessário que a Aplicação rode em um computador com [Python](https://www.python.org) 3.11, ou mais recente, instalado. É preciso que o computador tenha o Docker instalado, pois o Broker e os Devices serão executados por  meio de containers.
 
-### 0.1 Faça pull das imagens utilizadas
+### 1 Faça pull das imagens utilizadas
 Abra o terminal e execute os comandos abaixo para baixar as imagens do Broker e do Device no Doocker Hub.
 ```
 $ docker pull wolivej/middleware_b_i:latest
 $ docker pull wolivej/device_i:latest
 ```
-### 0.2 Iniciando o Broker
+### 2 Iniciando o Broker
 Para que tudo funcione da melhor forma, é necessário iniciar o serviço do Broker antes dos demais. Sendo assim, execute o seguinte comando em um determinado computador.
 ```
 $ docker run --network=host -it -p 5005:5005 wolivej/middleware_b_i:latest
 ```
 Anote o endereço IP do computador em que o Broker está rodando.
-### 0.3 Iniciando os Devices
-Em um novo terminal, execute o comando, logo abaixo, para criar o serviço do dispositivo e substitua 'ip_do_broker' pelo IP anotado no passo anterior. A variável de ambiente UNIT_MEASUREMENT pode representar qualquer unidade de medida, Coloque uma unidade para cada Device instânciado.
+### 3 Iniciando os Devices
+Em um novo terminal, execute o comando, logo abaixo, para criar o serviço do dispositivo e substitua 'ip_do_broker' pelo IP anotado no passo anterior. A variável de ambiente UNIT_MEASUREMENT pode representar qualquer unidade de medida, portanto substitua 'unidade_de_medida' pela que quiser. Coloque uma unidade para cada Device instânciado.
 ```
-$ docker run --network=host -it -e BROKER_IP=ip_do_broker -e UNIT_MEASUREMENT=mV wolivej/device_i:latest
+$ docker run --network=host -it -e BROKER_IP=ip_do_broker -e UNIT_MEASUREMENT=unidade_de_medida wolivej/device_i:latest
 ```
 Com o container já iniciado, é preciso dar o start no processo do Device. Execute o comando abaixo no container iniciado no código acima.
 ```
 $ python main.py
 ```
 Repita o processo para cada dispositivo que você queira criar.
-### 0.3 Iniciando a Aplicação
-Por fim, devemos iniciar a aplicação gráfica que irá consumir os dados do Broker. Baixe o arquivo [main.py](https://github.com/wlfoj/concorrencia-conectividade/blob/main/aplicacaoGF/main.py) e execute o comando abaixo, substituindo 'ip_do_broker' pelo IP anotado no passo **0.2**.
+### 3 Iniciando a Aplicação
+Por fim, devemos iniciar a aplicação gráfica que irá consumir os dados do Broker. Baixe o arquivo [main.py](https://github.com/wlfoj/concorrencia-conectividade/blob/main/aplicacaoGF/main.py) e execute o comando abaixo, substituindo 'ip_do_broker' pelo IP anotado no tópico **2**.
 ```
 $ python main.py ip_do_broker
 ```
@@ -49,13 +49,13 @@ Como exemplo:
 $ python main.py 127.0.0.1
 ```
 
-# 0. Como executar no computador local
-### 0.1 Criação dos containers
+# Como executar no computador local
+### 1 Criação dos containers
 Para criar o sistema de maneira isolada no seu computador, execute o comando abaixo no seu terminal, estando na pasta raiz do projeto. O comando irá criar um container para o Broker e 4 containers para os dispositivos.   
 ```
 $ docker-compose up
 ```
-### 0.2 Iniciando os dispositivos
+### 2 Iniciando os dispositivos
 **Passo 1:** Uma vez criado os containers, não será necessário iniciar o container do Broker, pois o mesmo já estará sendo executado. Entretanto, os dispositivos necessitam serem iniciados manualmente, devido a sua caracteristica interativa. Primeiro obtenha o nome dos containers de cada dispositivo (são todos os iniciados com "concorrencia-conectividade-device") com o  comando abaixo.
 ```
 $ docker ps
@@ -70,11 +70,11 @@ $ python main.py
 ```
 **Passo 4:** Repita os passos 2 e 3 para todos os containers de dispositivos. 
 
-### 0.3 Iniciando a aplicação gráfica
+### 3 Iniciando a aplicação gráfica
 Para executar a aplicação gráfica é preciso navegar até a pasta da mesma e executar o arquivo python principal, para isso execute os comandos abaixo. 
 ```
 $ cd aplicacaoGF/ 
-$ python main.py
+$ python main.py 127.0.0.1
 ```
 
 
