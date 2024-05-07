@@ -219,4 +219,6 @@ O Broker possui mecanismos para detectar quando um dispositivo é desconectado, 
 
 # 4. Conclusão
 O produto desenvolvido atende aos requisitos apresentados na situação problema. Durante o processo de desenvolvimento, pode-se aprender sobre técnicas de redes e aplicadas em sistemas distribuídos (como a conectividade), e também características de sistemas com threads (como a concorrência). Desta forma, este projeto serviu para aprofundar os conhecimentos da disciplina teórica (IPv4, TCP e UDP), como também serviu para a formação profissional.
-Embora o sistema implementado atenda de forma eficaz o problema proposto, o mesmo pode ser melhorado em aspectos de algoritmos e na utilização de mais threads para o processamento de requisições.
+
+
+Embora o sistema implementado atenda de forma eficaz o problema proposto, o mesmo pode ser melhorado em aspectos de algoritmos e na utilização de mais threads para o processamento de requisições. Outro ponto a ser melhorado é a nomeação dos dispositivos, na solução apresentada um determinado dispositivo muda de nome sempre que estabelece nova conexão, poderia haver uma forma de reconhecer que é o mesmo dispositivo de uma conexão anterior para que se fosse atribuído o mesmo nome.
