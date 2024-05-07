@@ -3,10 +3,10 @@
 ### Sumário 
 ------------
 + [Como executar no LARSID](#como-executar-no-larsid)
-+ [Como executar no computador local](#0-como-executar-no-computador-local)
++ [Como executar no computador local](#como-executar-no-computador-local)
 + [Introdução](#1-introdução)
 + [Visão geral](#2-visão-geral-da-arquitetura-da-solução)
-+ [Discussão sobre produto](#discussão-sobre-produto)
++ [Discussão sobre produto](#3-discussão-sobre-produto)
 + &nbsp;&nbsp;&nbsp;[Broker](#31-broker)
 + &nbsp;&nbsp;&nbsp;[Dispositivo](#32-dispositivo)
 + &nbsp;&nbsp;&nbsp;[Aplicação](#33-aplicação)
@@ -79,6 +79,10 @@ $ python main.py 127.0.0.1
 
 
 # 1. Introdução
+O avanço da tecnologia tem possibilitado a integração de diversos dispositivos por meio da internet, proporcionando facilitações em atividades de diversas naturezas. A gerência de diversos dispositivos que estão distribuídos em nós pela internet se mostra uma complexidade a ser lidada quando se fala em Internet das Coisas (do inglês Internet of Things, IoT). Tais sistemas distribuídos apresentam uma grande quantidade de dispositivos conectados distribuídos em localizações diversas, e para gerenciar de maneira efetiva todas as comunicações entre dispoositivos, comumente se usar serviços de Broker. O serviço de Broker é capaz de fornecer desacoplamento e escalabilidade no seu sistema, pois apresenta isolamento entre os dispositivos, fazendo com que os mesmos não precisem saber detalhes de todos os outros que integram o sistema.
+
+Diante do apresentado, foi proposto a implementação de um sistema distribuído onde há uma aplicação que deve realizar o controle e leitura de dispositivos por meio de um middleware. O sistema deveria ser desenvolvido utilizando sockets para realizar as comunicações TCP e UDP, porém foi permitido utilizar a biblioteca Flask para desenvolver a API Restfull que fornece endpoints para a aplicação, feita com o tkinter. O sistema desenvolvido possui 3 elementos principais: a Aplicação, o sistema que controla e visualiza os dados dos Dispositivos; o Broker, o intermediário que abstraí a comunicação entre a Aplicação e os Dispositivos; o Dispositivo, responsável por simular o comportamento de um sensor e enviar seus dados e receber comandos. A Aplicação, o Broker e os Dispositivos foram implementados em Python, versão 3.11. O relatório é dividido em 3 partes principais, excluindo a introdução e as etapas de como configurar o sistema, sendo elas: a visão geral do problema desenvolvido, as discussões detalhadas sobre a solução apresentada e as conclusões. 
+
 # 2. Visão geral da arquitetura e componentes da solução
 Cada pasta possui um dos elementos do sistema a ser desenvolvido, sendo eles: a Aplicação, o Broker e o Dispositivo. Na figura abaixo é possível ver como se dá a relação de comunicação entre os mesmos.
 
