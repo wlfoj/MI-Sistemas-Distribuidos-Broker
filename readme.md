@@ -82,7 +82,10 @@ $ python main.py 127.0.0.1
 # 2. Visão geral da arquitetura e componentes da solução
 Cada pasta possui um dos elementos do sistema a ser desenvolvido, sendo eles: a Aplicação, o Broker e o Dispositivo. Na figura abaixo é possível ver como se dá a relação de comunicação entre os mesmos.
 
-![Arquitetura da Solução](img/arquitetura_solucao.png)
+<p align="center">
+  <img src="img\arquitetura_solucao.png" alt="arquitetura" width='400px'>
+</p>
+<p align="center">Diagrama da arquitetura da Solução. Fonte: Autor</p>
 
 A aplicação deve requisitar os dados que precisa ao Broker, por meio de requisições HTTP que foram expostas pela API Restfull desenvolvida no Broker, sendo tais dados: os dispositivos conectados no broker e os valores dos dispositivos conectados ao broker. A aplicação, ainda, deve enviar comandos ao Broker por meio de requisições HTTP e tais comandos devem ser repassados aos dispositivos especificados.
 
@@ -106,6 +109,11 @@ O Dispositivo é o elemento responsável por enviar dados para o Broker e recebe
 
 Há uma interface, em linha de console, para que um usuário possa realizar operações como: ligar, desligar, pausar, alterar temperatura. Tudo isso é feito sem bloquear o funcionamento do mesmo. Devido ao requisito do problema, só é possível alterar os valores do dispositivos na interface manual. 
 
+<p align="center">
+  <img src="img\interface dispositivo.png" alt="interface" width='300px'>
+</p>
+<p align="center">Imagem da interface manual do dispositivo. Fonte: Autor</p>
+
 Em outra thread há um algoritmo que lida com os comandos recebidos pelo Broker (inicialmente enviados pela Aplicação), para que seja possível que a Aplicação controle o dispositivo remotamente. Esta mesma thread detecta quando uma conexão é destruída ou está com problemas e tenta criar um nova.
 
 A terceira thread é a responsável por fazer o envio via UDP do valor lido pelo sensor para o Broker, isso só será feito caso o mesmo esteja ligado e com uma conexão com o Broker. Os dados são enviados continuamente para o Broker, em intervalos de tempo muito curtos, e por isso os mesmos são enviados via UDP, visto que é mais rápido que o envio via TCP e que não há consequências graves caso uma mensagem seja perdida (outra seria recebida em sequência).
@@ -113,7 +121,10 @@ A terceira thread é a responsável por fazer o envio via UDP do valor lido pelo
 
 ### 3.3 Aplicação
 A Aplicação é o elemento utilizado para gerenciar os Dispositivos remotamente, seja enviando comandos ou lendo seus valores. Na mesma será possível enviar comando para um dispositivo especifico, bem como visualizar os valores de todos os que  estão com  conexões ativas no Broker.
-
+<p align="center">
+  <img src="img\aplicação grafica.png" alt="aplicação" width="300px">
+</p>
+<p align="center">Tela da Aplicação. Fonte: Autor</p>
 ### 3.4 Comunicações e protocolos desenvolvidos
 As comunicações TCP entre o Broker e Dispositivo se dão pela porta 12346, as comunicações UDP entre o Broker e o Dispositivo se dão pela porta 12345. A API Restful do Broker está exposta na porta 5005.
 
