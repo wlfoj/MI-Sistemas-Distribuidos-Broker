@@ -26,7 +26,7 @@ $ docker pull wolivej/device_i:latest
 ### 2 Iniciando o Broker
 Para que tudo funcione da melhor forma, é necessário iniciar o serviço do Broker antes dos demais. Sendo assim, execute o seguinte comando em um determinado computador.
 ```
-$ docker run --network=host -it -p 5005:5005 wolivej/middleware_b_i:latest
+$ docker run --network=host -it wolivej/middleware_b_i:latest
 ```
 Anote o endereço IP do computador em que o Broker está rodando.
 ### 3 Iniciando os Devices
@@ -224,7 +224,7 @@ O Broker emitirá comandos e esperará por respostas do Dispositivo. Assim, os e
     "command": 'ping',
 }
 ```
-O Dispositivo pode enviar qualquer coisa como resposta, o Broker só precisa de uma confirmação que o Dispositivo está operando.
+O Dispositivo deve enviar o mesmo json recebido para o Broker.
 
 
 ### 3.5 Aspectos gerais

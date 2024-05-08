@@ -10,7 +10,7 @@ argument = sys.argv # Obtém os argumentos da linha de comando
 url_api = "http://"+ argument[1] +":5005"
 command_options = ["Ligar", "Desligar", "Pausar", "Continuar"]
 devices_list = []
-INTERVAL_UPDATE_TIME = 2000 # Apresenta o intervalo de tempo para fazer uma nova requisição para a API
+INTERVAL_UPDATE_TIME = 1500 # Apresenta o intervalo de tempo para fazer uma nova requisição para a API
 
 ## =============================== BLOCO DE FUNÇÕES PARA INICIALIZAÇÃO =============================== ##
 def get_devices():
@@ -27,7 +27,7 @@ def get_devices():
         response = requests.get(url).json()
         response = response['data']
     except:
-        pass
+        response = []
 
     return response
 
@@ -38,24 +38,25 @@ def send_command():
     ## Obtendo os valores nos inputs
     selected_command = command_input.get()
     selected_device = device_input.get()
-    ## Gerando o nome do topico a partir do número do dispositivo
-    topic_name = "command_"
-    topic_name = topic_name + selected_device.split('_')[1] # Pega o número do dispositivo
-    url = url_api+"/pub/"+ topic_name
-    # Monta os dados
-    dados = {'message': selected_command, 'topico': topic_name, 'remetente': 'aplicação'}
-    erro = False
-    # faz envio
-    try:
-        response = requests.post(url, json=dados)
-    except:
-        erro = True
-    # Exibe uma mensagem de erro ou sucesso na tela
-    if (response.status_code in [200, 201]) and (not erro):
-        messagebox.showinfo("Sucesso", "A solicitação foi enviada com sucesso!")
-    else:
-        messagebox.showinfo("Erro", "A solicitação não pode ser enviada")
-    return 0
+    if selected_command and selected_device:
+        ## Gerando o nome do topico a partir do número do dispositivo
+        topic_name = "command_"
+        topic_name = topic_name + selected_device.split('_')[1] # Pega o número do dispositivo
+        url = url_api+"/pub/"+ topic_name
+        # Monta os dados
+        dados = {'message': selected_command, 'topico': topic_name, 'remetente': 'aplicação'}
+        erro = False
+        # faz envio
+        try:
+            response = requests.post(url, json=dados)
+        except:
+            erro = True
+        # Exibe uma mensagem de erro ou sucesso na tela
+        if (response.status_code in [200, 201]) and (not erro):
+            messagebox.showinfo("Sucesso", "A solicitação foi enviada com sucesso!")
+        else:
+            messagebox.showinfo("Erro", "A solicitação não pode ser enviada")
+        return 0 
 
 
 

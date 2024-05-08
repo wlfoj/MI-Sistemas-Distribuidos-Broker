@@ -17,27 +17,27 @@ from myTcpSet import receiverCommandTcp, try_conn_to_broker
 
 
 ## ====================== INICIALIZADOR DO DISPOSITIVO ====================== ##
-dispositivo = Sensor("Meu dispositivo", 25, conf['unit_measurement'])
+sensor = Sensor("Meu dispositivo", 25, conf['unit_measurement'])
 ###### ====================== BLOCO DE CRIAÇÃO DOS SOCKETS ====================== ######
 socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 ### =========== Tenta a conexão TCP =========== ###
-socket_tcp = try_conn_to_broker(dispositivo)
+socket_tcp = try_conn_to_broker(sensor)
 if socket_tcp == None:
     sys.exit()
-# dispositivo.set_is_conn_with_broker(True)
+# sensor.set_is_conn_with_broker(True)
 
 
 ###### =========== BLOCO DE CRIAÇÃO DA THREADS =========== ######
 # == Controle de quando enviar dados via UDP == ##
-thread_udp = threading.Thread(target=senderDataUdp, args=[dispositivo, socket_udp])
+thread_udp = threading.Thread(target=senderDataUdp, args=[sensor, socket_udp])
 thread_udp.daemon = True
 # == Controle para quando receber os comandos via TCP == ##
-thread_tcp = threading.Thread(target=receiverCommandTcp, args=[dispositivo, socket_tcp])
+thread_tcp = threading.Thread(target=receiverCommandTcp, args=[sensor, socket_tcp])
 thread_tcp.daemon = True
-## == Inicia o controle do menu (interface do dispositivo) == ##
-thread_interface_manual = threading.Thread(target=mainMenu, args=[dispositivo])
+## == Inicia o controle do menu (interface do sensor) == ##
+thread_interface_manual = threading.Thread(target=mainMenu, args=[sensor])
 thread_interface_manual.daemon = True
 
 ###### Dá start nas threads ######
