@@ -7,14 +7,12 @@ from config import conf
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-
 def create_connect_to_broker():
     '''Procedimento responsável pela conexão com o broker, realizo a conexão e envio um pacote via tcp com a chave de autenticação, caso
     seja recusada, encerro o programa'''
     socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Faço a conexão
     socket_tcp.connect((conf['broker_host_ip'], conf['broker_host_port_tcp']))
-    socket_tcp.settimeout(2)
     logging.info(f'TCP CONN - Conexão realizada com BROKER')
     ## 
     dado = {'key': conf['key_conn']}
@@ -26,33 +24,15 @@ def create_connect_to_broker():
     data_received = socket_tcp.recv(1024)
     #InvalidToken
     msg_decrypted = Utils.decrypt(data_received)
+    # print("recebi na tentaticav de conn", msg_decrypted)
     # Caso o status mostre que não consegui ser cadastrado, encerro o programa
     if msg_decrypted['is_acc'] == False:
         logging.critical(f'TCP CONN - Conexão recusada com BROKER')
         socket_tcp.close()
-        socket_tcp = None
+        # sys.exit()
+        return None
     logging.info(f'TCP CONN - Conexão validada e aceita por BROKER')
     return socket_tcp
-
-
-def try_conn_to_broker(device: Sensor) -> socket.socket:
-    conn = False
-    device.set_is_conn_with_broker(False)
-    # Fico preso no loop até conseguir criar uma nova conexão
-    while conn == False:
-        try:
-            logging.info(f'CONN TCP - Iniciando tentativa de conexão com o Broker')
-            socket = create_connect_to_broker()
-            if socket == None:
-                raise Exception
-            conn = True
-            device.set_is_conn_with_broker(True)
-        except Exception as e:
-            logging.info(f'CONN TCP - Tentativa de conexão falhou')
-            pass
-    logging.info(f'CONN TCP - Conexão com Broker estabelecida')
-    return socket
-
 
 def executor(device: Sensor , command: str):
     '''Função que executa a ação determinada para cada comando'''
@@ -80,10 +60,10 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket):
         # Fica aguardando um comando chegar via tcp
         try:
             data_received = socket.recv(1024)
-            if data_received == None:
-                raise Exception
+            if not data_received:
+                raise Exception()
+            ## Verifico se o dado recebido é só um ping de verificação se a conexão existe
         except:
-            # Se tiver erro ou não chegar nada, significa que um cabo foi desconectado
             socket.close()
             socket = try_conn_to_broker(device)
             continue
@@ -100,16 +80,31 @@ def receiverCommandTcp(device: Sensor, socket: socket.socket):
                     # Criptografa
                     obj_encrypted = Utils.encrypt(obj_to_send)
                     # Envia
-                    try:
-                        socket.send(obj_encrypted) # Envio a mensagem para a conexão correspondente
-                    except:
-                        socket.close()
-                        socket = try_conn_to_broker(device)
+                    socket.send(obj_encrypted) # Envio a mensagem para a conexão correspondente
                     continue
                 # Executa a instrução
                 executor(device, command)
             except:
                 # Se cair algum comando defeituoso eu ignoro
                 pass
+        else:
+            socket.close()
+            socket = try_conn_to_broker(device)
     socket.close()
 
+
+def try_conn_to_broker(device: Sensor) -> socket.socket:
+    conn = False
+    device.set_is_conn_with_broker(False)
+    # Fico preso no loop até conseguir criar uma nova conexão
+    while conn == False:
+        try:
+            logging.info(f'TCP CONN - Iniciando uma tentativa de conexão com o Broker')
+            socket = create_connect_to_broker()
+            conn = True
+            device.set_is_conn_with_broker(True)
+            logging.info(f'TCP CONN - A tentativa de conexão com o Broker obteve sucesso')
+        except Exception as e:
+            logging.info(f'TCP CONN - A tentativa de conexão com o Broker falhou')
+            pass
+    return socket
