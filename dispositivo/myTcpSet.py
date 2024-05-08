@@ -13,6 +13,7 @@ def create_connect_to_broker():
     socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Faço a conexão
     socket_tcp.connect((conf['broker_host_ip'], conf['broker_host_port_tcp']))
+    socket_tcp.settimeout(2)
     logging.info(f'TCP CONN - Conexão realizada com BROKER')
     ## 
     dado = {'key': conf['key_conn']}
