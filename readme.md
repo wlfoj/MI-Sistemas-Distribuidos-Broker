@@ -216,11 +216,15 @@ Método: GET
             'Dispositivo_3']
 }
 ```
-
-
-
-
-
+#### 3.4.5 Verificação de conexão entre Broker e Dispositivo 
+O Broker emitirá comandos e esperará por respostas do Dispositivo. Assim, os envolvidos possam entender quando os mesmos caíram na rede.
+```
+# Exemplo de comando enviado pelo Broker
+{
+    "command": 'ping',
+}
+```
+O Dispositivo pode enviar qualquer coisa como resposta, o Broker só precisa de uma confirmação que o Dispositivo está operando.
 
 
 ### 3.5 Aspectos gerais
