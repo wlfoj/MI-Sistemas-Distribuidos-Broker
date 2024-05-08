@@ -51,7 +51,7 @@ def thread_listen_conections_tcp(socket_tcp: socket.socket, broker: Broker):
                     conexao.send(obj_encrypted)
                     logging.warning(f'TCP LISTEN CONN - Conexão de {cliente[0]} rejeitada, pois a chave está incorreta')
                     conexao.close()
-            except:
+            except: # No geral, só entra aqui se a mensagem recebida não fizer parte do protocolo
                 obj_to_send = {'is_acc': False}
                 # Criptografa
                 obj_encrypted = Utils.encrypt(obj_to_send)
@@ -106,8 +106,9 @@ def thread_check_conn_health(broker: Broker):
                 device['tcp_connection'].send(msg_crypt)
                 # E espero ter qualquer resposta
                 response = device['tcp_connection'].recv(1024)
-                # Se n  tiver, é pq retiraram o cabo, se der alguma exceção também (Não preciso ver o conteudo, pois o dispositivo só envia dados tcp para responder um teste de saúde)
-                if not response:
+                response = Utils.decrypt(response)
+                # Se n tiver, é pq retiraram o cabo, se der alguma exceção também (Não preciso ver o conteudo, pois o dispositivo só envia dados tcp para responder um teste de saúde)
+                if not response or response['command'] != 'ping': # Só está aqui para forçar um erro, caso não seja uma mensagem que faça parte do protocolo
                     broker.delete_device(device['ip'])
                     logging.warning(f"TCP HEALTH CONN - O dispositivo {device['ip']} foi desconectado e por isso removido do broker") 
             except:
