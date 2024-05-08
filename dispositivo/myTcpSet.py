@@ -35,6 +35,7 @@ def create_connect_to_broker():
     logging.info(f'TCP CONN - Conexão validada e aceita por BROKER')
     return socket_tcp
 
+
 def executor(device: Sensor , command: str):
     '''Função que executa a ação determinada para cada comando'''
     match command:
@@ -107,5 +108,5 @@ def try_conn_to_broker(device: Sensor) -> socket.socket:
             logging.info(f'TCP CONN - A tentativa de conexão com o Broker obteve sucesso')
         except Exception as e:
             logging.info(f'TCP CONN - A tentativa de conexão com o Broker falhou')
-            pass
+    logging.info(f'CONN TCP - Conexão com Broker estabelecida')
     return socket
