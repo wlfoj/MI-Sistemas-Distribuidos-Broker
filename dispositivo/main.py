@@ -21,7 +21,7 @@ sensor = Sensor("Meu dispositivo", 25, conf['unit_measurement'])
 ###### ====================== BLOCO DE CRIAÇÃO DOS SOCKETS ====================== ######
 socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+socket_tcp.settimeout(2)
 ### =========== Tenta a conexão TCP =========== ###
 socket_tcp = try_conn_to_broker(sensor)
 if socket_tcp == None:
